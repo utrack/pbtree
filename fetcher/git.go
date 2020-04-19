@@ -23,6 +23,7 @@ func NewGit(absPathToCacheDir string, branches map[string]string) *Git {
 		repoToBranch:   branches,
 	}
 }
+
 func (c *Git) FetchRepo(ctx context.Context, module string) (string, error) {
 	// TODO retrieve git address via ?go-get=1 or similar
 	dst := filepath.Join(c.absPathToCache, module)
