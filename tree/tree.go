@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/utrack/protovendor/fetcher"
 )
 
 type Config struct {
@@ -20,16 +21,14 @@ type Config struct {
 	AbsPathToTree string
 }
 
-// Fetcher fetches repos by their name.
-type Fetcher interface {
-	FetchRepo(ctx context.Context, name string) (path string, err error)
-}
+type Fetcher = fetcher.Fetcher
 
 // Resolver resolves imports of non-standard form.
 type Resolver interface {
 	ResolveImport(ctx context.Context, moduleName string, importStr string) (string, error)
 }
 
+// Builder builds a standardized worktree of protofiles.
 type Builder struct {
 	c Config
 	f Fetcher
@@ -38,6 +37,15 @@ type Builder struct {
 	// marks already fetched files, so that we won't process
 	// single file twice
 	fetched map[imp]struct{}
+}
+
+func NewBuilder(c Config, f Fetcher, r Resolver) *Builder {
+	return &Builder{
+		c:       c,
+		f:       f,
+		r:       r,
+		fetched: map[imp]struct{}{},
+	}
 }
 
 // AddFile adds a protofile by its FQDN import to the tree,
