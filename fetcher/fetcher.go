@@ -17,7 +17,7 @@ type Fetcher interface {
 }
 
 type FileOpener interface {
-	Exists(context.Context, string) error
+	Exists(context.Context, string) (bool, error)
 	Open(string) (File, error)
 }
 

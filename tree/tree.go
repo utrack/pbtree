@@ -14,19 +14,19 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/protovendor/fetcher"
+	"github.com/utrack/protovendor/resolver"
 )
 
 type Config struct {
 	// AbsPathToTree is an absolute path to protofile tree root.
+	// This is where your final tree goes to.
 	AbsPathToTree string
 }
 
 type Fetcher = fetcher.Fetcher
 
 // Resolver resolves imports of non-standard form.
-type Resolver interface {
-	ResolveImport(ctx context.Context, moduleName string, importStr string) (string, error)
-}
+type Resolver = resolver.Resolver
 
 // Builder builds a standardized worktree of protofiles.
 type Builder struct {
@@ -60,14 +60,17 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 			continue
 		}
 
-		pathToRepo, err := b.f.FetchRepo(ctx, imp.repo)
+		opener, err := b.f.FetchRepo(ctx, imp.repo)
 		if err != nil {
 			return errors.Wrapf(err, "fetching repo '%v'", imp.repo)
 		}
-		pathToFile := filepath.Join(pathToRepo, imp.relpath)
-		newImps, err := b.vendorFile(ctx, imp, pathToFile)
+		file, err := opener.Open(imp.relpath)
 		if err != nil {
-			return errors.Wrapf(err, "adding '%v' to worktree", pathToFile)
+			return errors.Wrapf(err, "opening file '%v''", imp.relpath)
+		}
+		newImps, err := b.vendorFile(ctx, imp, file)
+		if err != nil {
+			return errors.Wrapf(err, "adding '%v' to worktree", imp.relpath)
 		}
 		for _, ii := range newImps {
 			q = append(q, newImp(ii))
@@ -97,7 +100,8 @@ var importRegexp = regexp.MustCompile(`^import\s+"(.*?)";.*$`)
 // they're not in FQDN form via Resolver and puts it to proto worktree.
 //
 // Returns this file's imports in FQDN format.
-func (b *Builder) vendorFile(ctx context.Context, imp imp, src string) ([]string, error) {
+func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]string, error) {
+	defer ri.Close()
 	var ret []string
 	dst := filepath.Join(b.c.AbsPathToTree, imp.repo+"!", imp.relpath)
 
@@ -107,12 +111,11 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, src string) ([]string
 	}
 
 	// TODO pipe line by line
-	input, err := ioutil.ReadFile(src)
+	input, err := ioutil.ReadAll(ri)
 	if err != nil {
-		return nil, errors.Wrap(err, "can't open .proto for vendoring")
+		return nil, errors.Wrap(err, "can't read .proto for vendoring")
 	}
 
-	// dump reader to writer and flush it
 	fw, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, errors.Wrap(err, "opening file for writing")
@@ -124,9 +127,9 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, src string) ([]string
 		if len(m) != 1 {
 			continue
 		}
-		mi, err := b.r.ResolveImport(ctx, imp.repo, m[1])
+		mi, err := b.r.ResolveImport(ctx, imp.repo, imp.relpath, m[1])
 		if err != nil {
-			return nil, errors.Wrapf(err, "line %v", i)
+			return nil, errors.Wrapf(err, "resolving import: line %v", i+1)
 		}
 
 		lines[i] = `import "` + mi + `";`
@@ -135,6 +138,7 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, src string) ([]string
 		}
 		ret = append(ret, mi)
 	}
+
 	wrdr := strings.NewReader(strings.Join(lines, "\n"))
 	_, err = io.Copy(fw, wrdr)
 	if err != nil {
