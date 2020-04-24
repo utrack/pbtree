@@ -32,13 +32,16 @@ type Config struct {
 }
 
 func FromFile(path string) (*Config, error) {
+	if path == "" {
+		return nil, errors.New("path to config file is empty")
+	}
 	r, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "opening config '%v'", path)
+		return nil, errors.Wrap(err, "opening config")
 	}
 	var c Config
 	err = yaml.Unmarshal(r, &c)
-	return &c, errors.Wrapf(err, "reading config '%v'", path)
+	return &c, errors.Wrap(err, "reading config")
 }
 
 func Default(repoName string) Config {
@@ -49,6 +52,9 @@ func Default(repoName string) Config {
 }
 
 func ToFile(c Config, path string) error {
+	if path == "" {
+		return errors.New("path is empty")
+	}
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		panic(err)

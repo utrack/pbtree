@@ -12,11 +12,11 @@ var Build = &cli.Command{
 	Usage: "build a tree according to existing config",
 	Flags: []cli.Flag{configFlag, gitCacheDir},
 	Action: func(ctx *cli.Context) error {
-		c, err := config.FromFile(ctx.String(configFlag.Name))
+		confPath := strFlag(ctx, configFlag)
+		c, err := config.FromFile(confPath)
 		if err != nil {
-			return errors.Wrap(err, "problems reading config file - try 'pbtree init'?")
+			return errors.Wrapf(err, "problems reading config file '%v' - try 'pbtree init'?", confPath)
 		}
-		return nil
 
 		ac, err := config.ToAppConfig(*c, ".", ctx.String(gitCacheDir.Name))
 		if err != nil {

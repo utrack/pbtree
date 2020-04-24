@@ -13,12 +13,12 @@ var repoNameFlag = &cli.StringFlag{
 }
 
 var Init = &cli.Command{
-	Name:  "init",
-	Usage: "create a default config",
-	Flags: []cli.Flag{repoNameFlag, configFlag},
+	Name:     "init",
+	Usage:    "create a default config",
+	Category: "configuration",
+	Flags:    []cli.Flag{repoNameFlag, configFlag},
 	Action: func(ctx *cli.Context) error {
 		repoName := strFlag(ctx, repoNameFlag)
 		return config.ToFile(config.Default(repoName), strFlag(ctx, configFlag))
-
 	},
 }

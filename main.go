@@ -38,7 +38,7 @@ func main() {
 	app := &cli.App{
 		Name:     "pbtree",
 		Usage:    "build protofile tree",
-		Commands: []*cli.Command{Init, Build},
+		Commands: []*cli.Command{Init, Build, Add},
 	}
 	err := app.Run(os.Args)
 	if err != nil {
