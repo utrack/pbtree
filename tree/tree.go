@@ -40,6 +40,9 @@ type Builder struct {
 }
 
 func NewBuilder(c Config, f Fetcher, r Resolver) *Builder {
+	if c.AbsPathToTree == "" {
+		panic("abspath is empty")
+	}
 	return &Builder{
 		c:       c,
 		f:       f,

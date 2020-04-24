@@ -1,13 +1,9 @@
 package app
 
 import (
-	"context"
-
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
 	"github.com/utrack/pbtree/resolver"
-	"github.com/utrack/pbtree/tree"
-	"github.com/y0ssar1an/q"
 )
 
 type FetcherConfig struct {
@@ -26,18 +22,18 @@ type Config struct {
 	Fetchers FetcherConfig
 }
 
-func BuildTree(ctx context.Context, c Config) error {
+func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 	if c.ModuleName == "" {
-		return errors.New("current repo's module name is empty")
+		return nil, nil, errors.New("current repo's module name is empty")
 	}
 	if c.ModuleAbsPath == "" {
-		return errors.New("abspath to current repo is empty")
+		return nil, nil, errors.New("abspath to current repo is empty")
 	}
 	if c.AbsTreeDest == "" {
-		return errors.New("abspath to output pbtree is empty")
+		return nil, nil, errors.New("abspath to output pbtree is empty")
 	}
 	if c.Fetchers.Git.AbsPathToCache == "" {
-		return errors.New("abspath to git cache is empty")
+		return nil, nil, errors.New("abspath to git cache is empty")
 	}
 
 	f := fetcher.NewCache(fetcher.Chain(
@@ -53,34 +49,5 @@ func BuildTree(ctx context.Context, c Config) error {
 		resolver.NewExistenceChecker(f),
 	}
 	rs := resolverStack{rr: resolvers}
-
-	tb := tree.NewBuilder(tree.Config{AbsPathToTree: c.AbsTreeDest}, f, rs)
-
-	for _, ff := range c.ForeignFileFQDNs {
-		err := tb.AddFile(ctx, ff)
-		if err != nil {
-			return errors.Wrapf(err, "adding foreign file '%v'", ff)
-		}
-	}
-	// TODO implement local files' scanner
-	return errors.New("local file scanner impl")
-}
-
-type resolverStack struct {
-	rr []resolver.Resolver
-}
-
-func (s resolverStack) ResolveImport(ctx context.Context, moduleName, fileImpFrom string, fullImportStr string) (string, error) {
-	perms := []string{fullImportStr}
-
-	var err error
-	for _, r := range s.rr {
-		fullImportStr, err = r.ResolveImport(ctx, moduleName, fileImpFrom, fullImportStr)
-		if err != nil {
-			q.Q("permutations for failed resolution", err, perms)
-			return "", err
-		}
-		perms = append(perms, fullImportStr)
-	}
-	return fullImportStr, nil
+	return f, rs, nil
 }

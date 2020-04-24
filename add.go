@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
+	"github.com/utrack/pbtree/app"
 	"github.com/utrack/pbtree/config"
 )
 
@@ -52,6 +53,20 @@ is written to the config; the same goes for PATH's dependencies, recursively.`,
 			return errors.Wrapf(err, "unexpected error when stat'ing '%v'", path)
 		}
 
-		return errors.New("remote add not implemented")
+		ac, err := config.ToAppConfig(*c, ".", ctx.String(gitCacheDir.Name))
+		if err != nil {
+			return err
+		}
+
+		imp, err := app.ResolveRemote(ctx.Context, *ac, path)
+		if err != nil {
+			return errors.Wrapf(err, "resolving '%v' as a remote import", path)
+		}
+		if imp != path {
+			log.Printf("resolved '%v' as '%v'\n", path, imp)
+		}
+		c.VendoredForeigns = append(c.VendoredForeigns, path)
+
+		return errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
 	},
 }
