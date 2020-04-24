@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"github.com/utrack/pbtree/config"
 )
@@ -19,6 +22,11 @@ var Init = &cli.Command{
 	Flags:    []cli.Flag{repoNameFlag, configFlag},
 	Action: func(ctx *cli.Context) error {
 		repoName := strFlag(ctx, repoNameFlag)
-		return config.ToFile(config.Default(repoName), strFlag(ctx, configFlag))
+		configPath := strFlag(ctx, configFlag)
+		stat, err := os.Stat(configPath)
+		if err == nil && stat.Size() > 0 {
+			return errors.Errorf("file '%v' exists and not empty, not doing the thing", configPath)
+		}
+		return config.ToFile(config.Default(repoName), configPath)
 	},
 }
