@@ -41,11 +41,15 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 		fetcher.NewGit(c.Fetchers.Git),
 	))
 
+	repl, err := resolver.NewReplacer(c.ImportReplaces)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "when creating resolver.Replacer from config")
+	}
 	resolvers := []resolver.Resolver{
-		resolver.NewReplacer(c.ImportReplaces),
+		repl,
 		resolver.FQDNSameProjectFormatter{},
 		resolver.NewRelative(f),
-		resolver.NewReplacer(c.ImportReplaces), // to replace resolved FQDNs
+		repl, // to replace resolved FQDNs
 		resolver.NewExistenceChecker(f),
 	}
 	rs := resolverStack{rr: resolvers}

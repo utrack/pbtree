@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
+	"github.com/utrack/pbtree/internal/wildcard"
 )
 
 // Resolver resolves imports of non-standard form.
@@ -60,15 +61,22 @@ func (r ExistenceChecker) ResolveImport(ctx context.Context, _, _ string, fullIm
 
 // Replacer replaces import paths with other preset paths.
 type Replacer struct {
-	rep map[string]string
+	rep *wildcard.Matcher
 }
 
-func NewReplacer(m map[string]string) Replacer {
-	return Replacer{rep: m}
+func NewReplacer(m map[string]string) (*Replacer, error) {
+	wcm := wildcard.NewMatcher()
+	for k, v := range m {
+		err := wcm.AddPattern(k, v)
+		if err != nil {
+			return nil, errors.Wrapf(err, "reading pattern '%v':'%v'", k, v)
+		}
+	}
+	return &Replacer{rep: wcm}, nil
 }
 
 func (r Replacer) ResolveImport(_ context.Context, _, _ string, fullImportStr string) (string, error) {
-	if v, ok := r.rep[fullImportStr]; ok {
+	if v, ok := r.rep.MatchReplace(fullImportStr); ok {
 		return v, nil
 	}
 	return fullImportStr, nil

@@ -29,7 +29,7 @@ to 'vendor' list.
 PATH's remote repo is resolved and cached if applicable, and remote repo' branch
 is written to the config; the same goes for PATH's dependencies, recursively.`,
 	Category: "configuration",
-	Flags:    []cli.Flag{configFlag},
+	Flags:    []cli.Flag{configFlag, gitCacheDir},
 	Action: func(ctx *cli.Context) error {
 		if ctx.NArg() == 0 || ctx.NArg() > 1 || ctx.Args().Get(0) == "" {
 			return errors.New("PATH argument is required; see pbtree help add")

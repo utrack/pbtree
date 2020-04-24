@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/app"
@@ -48,13 +49,35 @@ func Default(repoName string) Config {
 	return Config{
 		RepoModuleName: repoName,
 		Output:         "vendor.pbtree",
+		Replace: map[string]string{
+			"google/api/*":      "github.com/googleapis/googleapis!/google/api/*",
+			"google/type/*":     "github.com/googleapis/googleapis!/google/type/*",
+			"google/rpc/*":      "github.com/googleapis/googleapis!/google/rpc/*",
+			"google/protobuf/*": "github.com/google/protobuf!/src/google/protobuf/*",
+		},
 	}
+}
+
+func dedupeAndSort(ss []string) []string {
+	lm := map[string]struct{}{}
+	for i := range ss {
+		lm[ss[i]] = struct{}{}
+	}
+	ss = make([]string, 0, len(lm))
+	for k := range lm {
+		ss = append(ss, k)
+	}
+	sort.Strings(ss)
+	return ss
 }
 
 func ToFile(c Config, path string) error {
 	if path == "" {
 		return errors.New("path is empty")
 	}
+
+	c.VendoredForeigns = dedupeAndSort(c.VendoredForeigns)
+	c.Paths = dedupeAndSort(c.Paths)
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		panic(err)

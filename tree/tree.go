@@ -54,11 +54,11 @@ func NewBuilder(c Config, f Fetcher, r Resolver) *Builder {
 // AddFile adds a protofile by its FQDN import to the tree,
 // fetching all its dependencies recursively.
 func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
-	q := []imp{newImp(fqdn)}
+	qq := []imp{newImp(fqdn)}
 
-	for len(q) > 0 {
-		imp := q[len(q)-1]
-		q = q[:len(q)-1]
+	for len(qq) > 0 {
+		imp := qq[len(qq)-1]
+		qq = qq[:len(qq)-1]
 		if _, ok := b.fetched[imp]; ok {
 			continue
 		}
@@ -76,7 +76,7 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 			return errors.Wrapf(err, "adding '%v' to worktree", imp.relpath)
 		}
 		for _, ii := range newImps {
-			q = append(q, newImp(ii))
+			qq = append(qq, newImp(ii))
 		}
 		b.fetched[imp] = struct{}{}
 	}
@@ -127,7 +127,7 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]
 	lines := strings.Split(string(input), "\n")
 	for i, txt := range lines {
 		m := importRegexp.FindStringSubmatch(txt)
-		if len(m) != 1 {
+		if len(m) != 2 {
 			continue
 		}
 		mi, err := b.r.ResolveImport(ctx, imp.repo, imp.relpath, m[1])
