@@ -21,8 +21,12 @@ which will be used by 'pbtree build' later.
 If the argument is a path to an existing local file or directory - add treats it
 as a local path and adds it to 'paths'.
 
-Otherwise, argument is treated as an import string - it is resolved to standard format
-(re.po/addr!/path/to/file.proto) according to existing config and added to vendor list.`,
+Otherwise, argument is treated as an import string - it is resolved to standard
+format (re.po/addr!/path/to/file.proto) according to existing config and added
+to 'vendor' list.
+
+PATH's remote repo is resolved and cached if applicable, and remote repo' branch
+is written to the config; the same goes for PATH's dependencies, recursively.`,
 	Category: "configuration",
 	Flags:    []cli.Flag{configFlag},
 	Action: func(ctx *cli.Context) error {

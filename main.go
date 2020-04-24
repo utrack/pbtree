@@ -39,6 +39,14 @@ func main() {
 		Name:     "pbtree",
 		Usage:    "build protofile tree",
 		Commands: []*cli.Command{Init, Build, Add},
+		// TODO add help topic for protofile imports, 'topic imports'
+		Description: `Builds a standard, predictable protofile tree
+including local and remote protofiles.
+
+For config management, see 'pbtree help add'.
+
+For description of a worktree, see 'pbtree help build'.
+`,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
