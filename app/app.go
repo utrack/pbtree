@@ -31,6 +31,7 @@ func BuildTree(ctx context.Context, c Config) error {
 
 	resolvers := []resolver.Resolver{
 		resolver.NewReplacer(c.ImportReplaces),
+		resolver.FQDNSameProjectFormatter{},
 		resolver.NewRelative(f),
 		resolver.NewReplacer(c.ImportReplaces), // to replace resolved FQDNs
 		resolver.NewExistenceChecker(f),

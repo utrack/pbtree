@@ -73,3 +73,18 @@ func (r Replacer) ResolveImport(_ context.Context, _, _ string, fullImportStr st
 	}
 	return fullImportStr, nil
 }
+
+// FQDNSameProjectFormatter recognizes imports in form foo.bar/baz/qux/q/w/e.proto
+// and replaces them with foo.bar/baz/qux!/q/w/e.proto, if they're originated
+// from protos in the same project (ex. foo.bar/baz/qux!/a/b/c.proto)
+type FQDNSameProjectFormatter struct{}
+
+func (FQDNSameProjectFormatter) ResolveImport(_ context.Context, moduleName, _ string, fullImportStr string) (string, error) {
+	if isStandardFormat(fullImportStr) {
+		return fullImportStr, nil
+	}
+	if strings.HasPrefix(fullImportStr, moduleName) {
+		return stdFormat(moduleName, strings.TrimPrefix(fullImportStr, moduleName)), nil
+	}
+	return fullImportStr, nil
+}
