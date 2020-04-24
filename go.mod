@@ -1,4 +1,4 @@
-module github.com/utrack/protovendor
+module github.com/utrack/pbtree
 
 go 1.14
 

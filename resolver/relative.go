@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/protovendor/fetcher"
+	"github.com/utrack/pbtree/fetcher"
 )
 
 // Relative resolves relative imports of form

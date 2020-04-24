@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"github.com/utrack/protovendor/config"
+	"github.com/utrack/pbtree/config"
 )
 
 var Add = &cli.Command{

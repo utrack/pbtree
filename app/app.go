@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/protovendor/fetcher"
-	"github.com/utrack/protovendor/resolver"
-	"github.com/utrack/protovendor/tree"
+	"github.com/utrack/pbtree/fetcher"
+	"github.com/utrack/pbtree/resolver"
+	"github.com/utrack/pbtree/tree"
 	"github.com/y0ssar1an/q"
 )
 

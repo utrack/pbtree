@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/urfave/cli/v2"
-	"github.com/utrack/protovendor/config"
+	"github.com/utrack/pbtree/config"
 )
 
 var repoNameFlag = &cli.StringFlag{

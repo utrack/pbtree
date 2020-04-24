@@ -42,7 +42,7 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	} else {
 		cmd.Dir = dst
 	}
-	log.Println("protovendor: fetching ", repo)
+	log.Printf("git: fetching '%v'\n", repo)
 	err := cmd.Run()
 	if err != nil {
 		return nil, errors.Wrap(err, "when running "+cmd.String())

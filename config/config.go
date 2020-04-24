@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/protovendor/app"
-	"github.com/utrack/protovendor/fetcher"
+	"github.com/utrack/pbtree/app"
+	"github.com/utrack/pbtree/fetcher"
 	"gopkg.in/yaml.v3"
 )
 

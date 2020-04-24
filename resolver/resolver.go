@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/protovendor/fetcher"
+	"github.com/utrack/pbtree/fetcher"
 )
 
 // Resolver resolves imports of non-standard form.

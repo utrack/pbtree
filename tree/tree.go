@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/protovendor/fetcher"
-	"github.com/utrack/protovendor/resolver"
+	"github.com/utrack/pbtree/fetcher"
+	"github.com/utrack/pbtree/resolver"
 )
 
 type Config struct {
