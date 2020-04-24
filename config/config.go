@@ -30,6 +30,16 @@ type Config struct {
 
 	// RepoToBranch maps repositories to desired branches.
 	RepoToBranch map[string]string `yaml:"branches"`
+
+	Fetchers Fetchers `yaml:"fetchers"`
+}
+
+type Fetchers struct {
+	HTTP FetcherHTTP `yaml:"http"`
+}
+
+type FetcherHTTP struct {
+	ModuleToAddr map[string]string `yaml:"repoToAddress"`
 }
 
 func FromFile(path string) (*Config, error) {
@@ -54,6 +64,15 @@ func Default(repoName string) Config {
 			"google/type/*":     "github.com/googleapis/googleapis!/google/type/*",
 			"google/rpc/*":      "github.com/googleapis/googleapis!/google/rpc/*",
 			"google/protobuf/*": "github.com/google/protobuf!/src/google/protobuf/*",
+		},
+		Fetchers: Fetchers{
+			HTTP: FetcherHTTP{
+				ModuleToAddr: map[string]string{
+					"github.com/googleapis/googleapis": "https://github.com/googleapis/googleapis/blob/{branch}/",
+					"github.com/google/protobuf":       "https://github.com/google/protobuf/blob/{branch}/",
+					"github.com/gogo/*":                "https://github.com/gogo/*blob/{branch}/",
+				},
+			},
 		},
 	}
 }
@@ -117,7 +136,12 @@ func ToAppConfig(
 			Git: fetcher.GitConfig{
 				AbsPathToCache:  pathToGitCache,
 				ReposToBranches: c.RepoToBranch,
-			}},
+			},
+			HTTP: fetcher.HTTPConfig{
+				PatternsToHTTPPrefix: c.Fetchers.HTTP.ModuleToAddr,
+				ReposToBranches:      c.RepoToBranch,
+			},
+		},
 	}, nil
 
 }

@@ -7,7 +7,8 @@ import (
 )
 
 type FetcherConfig struct {
-	Git fetcher.GitConfig
+	Git  fetcher.GitConfig
+	HTTP fetcher.HTTPConfig
 }
 
 type Config struct {
@@ -36,8 +37,14 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 		return nil, nil, errors.New("abspath to git cache is empty")
 	}
 
+	fHTTP, err := fetcher.NewHTTP(c.Fetchers.HTTP)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "configuring HTTP fetcher")
+	}
+
 	f := fetcher.NewCache(fetcher.Chain(
 		fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName),
+		fHTTP,
 		fetcher.NewGit(c.Fetchers.Git),
 	))
 

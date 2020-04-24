@@ -67,6 +67,11 @@ is written to the config; the same goes for PATH's dependencies, recursively.`,
 		}
 		c.VendoredForeigns = append(c.VendoredForeigns, path)
 
-		return errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
+		err = errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
+		if err != nil {
+			return err
+		}
+		log.Println("file successfully added, don't forget to call 'pbtree build'!")
+		return nil
 	},
 }

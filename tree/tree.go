@@ -69,7 +69,7 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 		}
 		file, err := opener.Open(ctx, imp.relpath)
 		if err != nil {
-			return errors.Wrapf(err, "opening file '%v''", imp.relpath)
+			return errors.Wrapf(err, "opening file '%v'", imp.relpath)
 		}
 		newImps, err := b.vendorFile(ctx, imp, file)
 		if err != nil {

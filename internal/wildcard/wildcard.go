@@ -29,10 +29,10 @@ func (m *Matcher) AddPattern(pt string, replace string) error {
 	if ptSIdx != len(pt)-1 {
 		return errors.New("only prefix wildcards are supported now, ex.'foo/bar*'")
 	}
-	if strings.Index(pt, "*") != len(pt)-1 {
-		return errors.New("prefix replacement string should end in * as well")
+	if strings.Index(replace, "*") == -1 {
+		return errors.New("prefix replacement string should have * as well")
 	}
-	m.prefixes[pt[:ptSIdx]] = replace[:len(replace)-1]
+	m.prefixes[pt[:ptSIdx]] = replace
 	return nil
 }
 
@@ -43,7 +43,7 @@ func (m *Matcher) MatchReplace(s string) (string, bool) {
 	for k, v := range m.prefixes {
 		if strings.HasPrefix(s, k) {
 			s = strings.TrimPrefix(s, k)
-			return v + s, true
+			return strings.Replace(v, "*", s, 1), true
 		}
 	}
 	return "", false
