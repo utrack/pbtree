@@ -4,17 +4,17 @@ import "context"
 
 type Cache struct {
 	f Fetcher
-	c map[string]string
+	c map[string]FileOpener
 }
 
 func NewCache(f Fetcher) *Cache {
 	return &Cache{
 		f: f,
-		c: map[string]string{},
+		c: map[string]FileOpener{},
 	}
 }
 
-func (c *Cache) FetchRepo(ctx context.Context, module string) (string, error) {
+func (c *Cache) FetchRepo(ctx context.Context, module string) (FileOpener, error) {
 	if v, ok := c.c[module]; ok {
 		return v, nil
 	}

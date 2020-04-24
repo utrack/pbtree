@@ -15,10 +15,19 @@ type Config struct {
 	ForeignFileFQDNs []string
 	Paths            []string
 	AbsTreeDest      string
+
+	ModuleName    string
+	ModuleAbsPath string
+
+	GitCacheAbsPath string
+	GitBranches     map[string]string
 }
 
 func BuildTree(ctx context.Context, c Config) error {
-	var f fetcher.Fetcher
+	f := fetcher.NewCache(fetcher.Chain(
+		fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName),
+		fetcher.NewGit(c.GitCacheAbsPath, c.GitBranches),
+	))
 
 	resolvers := []resolver.Resolver{
 		resolver.NewReplacer(c.ImportReplaces),

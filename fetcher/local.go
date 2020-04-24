@@ -1,6 +1,8 @@
 package fetcher
 
-import "context"
+import (
+	"context"
+)
 
 // Local returns some hardcoded path for a single repo.
 type Local struct {
@@ -14,9 +16,9 @@ func NewLocal(absPath string, repoName string) Local {
 
 var _ Fetcher = &Local{}
 
-func (l Local) FetchRepo(ctx context.Context, repo string) (string, error) {
+func (l Local) FetchRepo(ctx context.Context, repo string) (FileOpener, error) {
 	if repo == l.repoName {
-		return l.path, nil
+		return openerLocal{rootPath: l.path}, nil
 	}
-	return "", ErrOtherFetcher
+	return nil, ErrOtherFetcher
 }

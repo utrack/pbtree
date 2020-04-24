@@ -18,7 +18,7 @@ type Fetcher interface {
 
 type FileOpener interface {
 	Exists(context.Context, string) (bool, error)
-	Open(string) (File, error)
+	Open(context.Context, string) (File, error)
 }
 
 type File = io.ReadCloser

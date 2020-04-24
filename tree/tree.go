@@ -64,7 +64,7 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 		if err != nil {
 			return errors.Wrapf(err, "fetching repo '%v'", imp.repo)
 		}
-		file, err := opener.Open(imp.relpath)
+		file, err := opener.Open(ctx, imp.relpath)
 		if err != nil {
 			return errors.Wrapf(err, "opening file '%v''", imp.relpath)
 		}

@@ -10,8 +10,8 @@ func Chain(ff ...Fetcher) Chainer {
 	return Chainer{ff: ff}
 }
 
-func (c Chainer) FetchRepo(ctx context.Context, module string) (string, error) {
-	var ret string
+func (c Chainer) FetchRepo(ctx context.Context, module string) (FileOpener, error) {
+	var ret FileOpener
 	var err error
 	for _, f := range c.ff {
 		ret, err = f.FetchRepo(ctx, module)

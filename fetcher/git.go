@@ -24,7 +24,7 @@ func NewGit(absPathToCacheDir string, branches map[string]string) *Git {
 	}
 }
 
-func (c *Git) FetchRepo(ctx context.Context, module string) (string, error) {
+func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) {
 	// TODO retrieve git address via ?go-get=1 or similar
 	dst := filepath.Join(c.absPathToCache, module)
 
@@ -40,7 +40,7 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (string, error) {
 	log.Println("protovendor: fetching ", repo)
 	err := cmd.Run()
 	if err != nil {
-		return "", errors.Wrap(err, "when running "+cmd.String())
+		return nil, errors.Wrap(err, "when running "+cmd.String())
 	}
 
 	branch := "master"
@@ -51,5 +51,8 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (string, error) {
 	cmd = exec.Command("git", "checkout", "origin/"+branch)
 	cmd.Dir = dst
 	err = cmd.Run()
-	return dst, errors.Wrapf(err, "when checking out '%v' branch", branch)
+	if err != nil {
+		return nil, errors.Wrapf(err, "when checking out 'origin/%v' branch", branch)
+	}
+	return openerLocal{rootPath: dst}, nil
 }
