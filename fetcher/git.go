@@ -17,10 +17,15 @@ type Git struct {
 	repoToBranch   map[string]string
 }
 
-func NewGit(absPathToCacheDir string, branches map[string]string) *Git {
+type GitConfig struct {
+	AbsPathToCache  string
+	ReposToBranches map[string]string
+}
+
+func NewGit(c GitConfig) *Git {
 	return &Git{
-		absPathToCache: absPathToCacheDir,
-		repoToBranch:   branches,
+		absPathToCache: c.AbsPathToCache,
+		repoToBranch:   c.ReposToBranches,
 	}
 }
 

@@ -10,6 +10,10 @@ import (
 	"github.com/y0ssar1an/q"
 )
 
+type FetcherConfig struct {
+	Git fetcher.GitConfig
+}
+
 type Config struct {
 	ImportReplaces   map[string]string
 	ForeignFileFQDNs []string
@@ -19,14 +23,26 @@ type Config struct {
 	ModuleName    string
 	ModuleAbsPath string
 
-	GitCacheAbsPath string
-	GitBranches     map[string]string
+	Fetchers FetcherConfig
 }
 
 func BuildTree(ctx context.Context, c Config) error {
+	if c.ModuleName == "" {
+		return errors.New("current repo's module name is empty")
+	}
+	if c.ModuleAbsPath == "" {
+		return errors.New("abspath to current repo is empty")
+	}
+	if c.AbsTreeDest == "" {
+		return errors.New("abspath to output pbtree is empty")
+	}
+	if c.Fetchers.Git.AbsPathToCache == "" {
+		return errors.New("abspath to git cache is empty")
+	}
+
 	f := fetcher.NewCache(fetcher.Chain(
 		fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName),
-		fetcher.NewGit(c.GitCacheAbsPath, c.GitBranches),
+		fetcher.NewGit(c.Fetchers.Git),
 	))
 
 	resolvers := []resolver.Resolver{
