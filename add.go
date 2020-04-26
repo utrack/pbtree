@@ -66,12 +66,12 @@ is written to the config; the same goes for PATH's dependencies, recursively.`,
 			log.Printf("resolved '%v' as '%v'\n", path, imp)
 		}
 		c.VendoredForeigns = append(c.VendoredForeigns, path)
+		c.RepoToBranch = ac.Fetchers.RepoToBranch.Values()
 
 		err = errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
-		if err != nil {
-			return err
+		if err == nil {
+			log.Println("file successfully added, don't forget to call 'pbtree build'!")
 		}
-		log.Println("file successfully added, don't forget to call 'pbtree build'!")
-		return nil
+		return err
 	},
 }

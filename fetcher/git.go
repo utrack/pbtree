@@ -8,18 +8,19 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	"github.com/utrack/pbtree/vmap"
 )
 
 // Git fetches remote repos via git/https, saving them to
 // local cache directory.
 type Git struct {
 	absPathToCache string
-	repoToBranch   map[string]string
+	repoToBranch   *vmap.Map
 }
 
 type GitConfig struct {
 	AbsPathToCache  string
-	ReposToBranches map[string]string
+	ReposToBranches *vmap.Map
 }
 
 func NewGit(c GitConfig) *Git {
@@ -49,8 +50,10 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	}
 
 	branch := "master"
-	if v, ok := c.repoToBranch[module]; ok {
+	if v, ok := c.repoToBranch.Get(module); ok {
 		branch = v
+	} else {
+		c.repoToBranch.Put(module, "master")
 	}
 
 	cmd = exec.Command("git", "checkout", "origin/"+branch)

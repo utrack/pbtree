@@ -4,11 +4,18 @@ import (
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
 	"github.com/utrack/pbtree/resolver"
+	"github.com/utrack/pbtree/vmap"
 )
 
 type FetcherConfig struct {
-	Git  fetcher.GitConfig
-	HTTP fetcher.HTTPConfig
+	GitAbsPathToCache string
+	// repo names or patterns for which
+	// HTTP fetcher can be used; values are URI prefixes.
+	//
+	// Special substring {branch} is replaced to branch name.
+	PatternsToHTTPPrefix map[string]string
+
+	RepoToBranch *vmap.Map
 }
 
 type Config struct {
@@ -33,11 +40,14 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 	if c.AbsTreeDest == "" {
 		return nil, nil, errors.New("abspath to output pbtree is empty")
 	}
-	if c.Fetchers.Git.AbsPathToCache == "" {
+	if c.Fetchers.GitAbsPathToCache == "" {
 		return nil, nil, errors.New("abspath to git cache is empty")
 	}
 
-	fHTTP, err := fetcher.NewHTTP(c.Fetchers.HTTP)
+	fHTTP, err := fetcher.NewHTTP(fetcher.HTTPConfig{
+		ReposToBranches:      c.Fetchers.RepoToBranch,
+		PatternsToHTTPPrefix: c.Fetchers.PatternsToHTTPPrefix,
+	})
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "configuring HTTP fetcher")
 	}
@@ -45,7 +55,7 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 	f := fetcher.NewCache(fetcher.Chain(
 		fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName),
 		fHTTP,
-		fetcher.NewGit(c.Fetchers.Git),
+		fetcher.NewGit(fetcher.GitConfig{AbsPathToCache: c.Fetchers.GitAbsPathToCache, ReposToBranches: c.Fetchers.RepoToBranch}),
 	))
 
 	repl, err := resolver.NewReplacer(c.ImportReplaces)

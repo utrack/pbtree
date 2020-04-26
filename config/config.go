@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/app"
-	"github.com/utrack/pbtree/fetcher"
+	"github.com/utrack/pbtree/vmap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,10 +28,10 @@ type Config struct {
 	// RepoModuleName is current repo's name.
 	RepoModuleName string `yaml:"moduleName"`
 
+	Fetchers Fetchers `yaml:"fetchers"`
+
 	// RepoToBranch maps repositories to desired branches.
 	RepoToBranch map[string]string `yaml:"branches"`
-
-	Fetchers Fetchers `yaml:"fetchers"`
 }
 
 type Fetchers struct {
@@ -133,14 +133,9 @@ func ToAppConfig(
 		ModuleName:       c.RepoModuleName,
 		ModuleAbsPath:    localRepoPath,
 		Fetchers: app.FetcherConfig{
-			Git: fetcher.GitConfig{
-				AbsPathToCache:  pathToGitCache,
-				ReposToBranches: c.RepoToBranch,
-			},
-			HTTP: fetcher.HTTPConfig{
-				PatternsToHTTPPrefix: c.Fetchers.HTTP.ModuleToAddr,
-				ReposToBranches:      c.RepoToBranch,
-			},
+			GitAbsPathToCache:    pathToGitCache,
+			RepoToBranch:         vmap.New(c.RepoToBranch),
+			PatternsToHTTPPrefix: c.Fetchers.HTTP.ModuleToAddr,
 		},
 	}, nil
 

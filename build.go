@@ -28,6 +28,8 @@ Current project's name is controlled via field 'moduleName' in config.
 
 Remote protofiles listed under 'vendor' will be fetched and processed in the
 same way as local files.
+
+Build can rewrite given config file if any new repository was discovered.
 `,
 	Flags: []cli.Flag{configFlag, gitCacheDir},
 	Action: func(ctx *cli.Context) error {
@@ -41,7 +43,16 @@ same way as local files.
 		if err != nil {
 			return err
 		}
+		r2vv := ac.Fetchers.RepoToBranch.Version()
 
-		return app.BuildTree(ctx.Context, *ac)
+		err = app.BuildTree(ctx.Context, *ac)
+		if err != nil {
+			return err
+		}
+		if ac.Fetchers.RepoToBranch.Version() == r2vv {
+			return nil
+		}
+		c.RepoToBranch = ac.Fetchers.RepoToBranch.Values()
+		return errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
 	},
 }

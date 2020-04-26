@@ -7,13 +7,14 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/internal/wildcard"
+	"github.com/utrack/pbtree/vmap"
 )
 
 // HTTP fetches remote repos via HTTP(S), if their path is configured.
 type HTTP struct {
 	// maps repo name to http(s) address
 	reposMatcher *wildcard.Matcher
-	branches     map[string]string
+	branches     *vmap.Map
 }
 
 type HTTPConfig struct {
@@ -23,7 +24,7 @@ type HTTPConfig struct {
 	// Special substring {branch} is replaced to branch name.
 	PatternsToHTTPPrefix map[string]string
 
-	ReposToBranches map[string]string
+	ReposToBranches *vmap.Map
 }
 
 func NewHTTP(
@@ -48,8 +49,10 @@ func (c *HTTP) FetchRepo(ctx context.Context, module string) (FileOpener, error)
 		return nil, ErrOtherFetcher
 	}
 	branch := "master"
-	if v, ok := c.branches[module]; ok {
+	if v, ok := c.branches.Get(module); ok {
 		branch = v
+	} else {
+		c.branches.Put(module, branch)
 	}
 	prefix = strings.Replace(prefix, "{branch}", branch, -1)
 	log.Printf("fetcher: using http fetcher for '%v'\n", module)
