@@ -49,14 +49,14 @@ func (r ExistenceChecker) ResolveImport(ctx context.Context, _, _ string, fullIm
 	if err != nil {
 		return "", errors.Wrapf(err, "existenceChecker: error when fetching repo '%v'", repoName)
 	}
-	ok, err := repo.Exists(ctx, path)
-	if ok {
-		return fullImportStr, nil
+	err = repo.Exists(ctx, path)
+	if errors.Is(err, fetcher.ErrFileNotExists) {
+		return "", errors.Wrapf(err, "'%v' not exists in '%v'", path, repoName)
 	}
 	if err != nil {
 		return "", errors.Wrapf(err, "when checking existence of '%v'", path)
 	}
-	return "", errors.Errorf("'%v' not exists in '%v'", path, repoName)
+	return fullImportStr, nil
 }
 
 // Replacer replaces import paths with other preset paths.

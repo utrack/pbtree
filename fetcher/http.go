@@ -57,5 +57,6 @@ func (c *HTTP) FetchRepo(ctx context.Context, module string) (FileOpener, error)
 	prefix = strings.Replace(prefix, "{branch}", branch, -1)
 	log.Printf("fetcher: using http fetcher for '%v'\n", module)
 
-	return newHTTPOpener(prefix), nil
+	ret := newHTTPOpener(prefix)
+	return ret, nil
 }

@@ -29,8 +29,8 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 		return "", errors.Wrapf(err, "relative: error when fetching repo '%v'", moduleName)
 	}
 
-	ok, _ := repo.Exists(ctx, fullImportStr)
-	if ok {
+	err = repo.Exists(ctx, fullImportStr)
+	if err == nil {
 		return stdFormat(moduleName, fullImportStr), nil
 	}
 	file, err := filepath.Rel(importingFile, fullImportStr)
@@ -38,8 +38,8 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 		return fullImportStr, nil
 	}
 
-	ok, _ = repo.Exists(ctx, file)
-	if ok {
+	err = repo.Exists(ctx, file)
+	if err == nil {
 		return stdFormat(moduleName, path.Clean(file)), nil
 	}
 

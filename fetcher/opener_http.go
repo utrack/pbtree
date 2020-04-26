@@ -23,21 +23,24 @@ func newHTTPOpener(
 	}
 }
 
-func (h httpOpener) Exists(ctx context.Context, name string) (bool, error) {
+func (h httpOpener) Exists(ctx context.Context, name string) error {
 	path := h.prefix + name
 	req, err := http.NewRequest("HEAD", path, nil)
 	if err != nil {
-		return false, errors.Wrap(err, "creating HEAD request")
+		return errors.Wrap(err, "creating HEAD request")
 	}
 	req = req.WithContext(ctx)
 	rsp, err := h.c.Do(req)
 	if err != nil {
-		return false, errors.Wrapf(err, "when running HEAD request to '%v'", path)
+		return errors.Wrapf(err, "when running HEAD request to '%v'", path)
+	}
+	if rsp.StatusCode == http.StatusNotFound {
+		return errors.Wrapf(ErrFileNotExists, "HTTP HEADing '%v'", path)
 	}
 	if rsp.StatusCode != http.StatusOK {
-		return false, errors.Wrapf(err, "got code '%v' for '%v'", rsp.StatusCode, path)
+		return errors.Wrapf(err, "got code '%v' for '%v'", rsp.StatusCode, path)
 	}
-	return true, nil
+	return nil
 }
 
 func (h httpOpener) Open(ctx context.Context, name string) (File, error) {

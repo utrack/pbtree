@@ -10,7 +10,8 @@ import (
 )
 
 type openerLocal struct {
-	rootPath string
+	rootPath   string
+	branchName string
 }
 
 func (f openerLocal) getPath(name string) (string, error) {
@@ -23,16 +24,16 @@ func (f openerLocal) getPath(name string) (string, error) {
 	return path, nil
 }
 
-func (f openerLocal) Exists(_ context.Context, name string) (bool, error) {
+func (f openerLocal) Exists(_ context.Context, name string) error {
 	path, err := f.getPath(name)
 	if err != nil {
-		return false, err
+		return err
 	}
 	_, err = os.Stat(path)
-	if os.IsNotExist(err) {
-		return false, nil
+	if os.IsNotExist(err) && f.branchName != "" {
+		return errors.Wrapf(err, "branch '%v'", f.branchName)
 	}
-	return err == nil, errors.Wrapf(err, "stat-ing '%v'", path)
+	return err
 }
 
 func (f openerLocal) Open(_ context.Context, name string) (File, error) {
@@ -40,5 +41,9 @@ func (f openerLocal) Open(_ context.Context, name string) (File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return os.Open(path)
+	ret, err := os.Open(path)
+	if os.IsNotExist(err) && f.branchName != "" {
+		return nil, errors.Wrapf(err, "branch '%v'", f.branchName)
+	}
+	return ret, err
 }

@@ -62,5 +62,5 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	if err != nil {
 		return nil, errors.Wrapf(err, "when checking out 'origin/%v' branch", branch)
 	}
-	return openerLocal{rootPath: dst}, nil
+	return openerLocal{rootPath: dst, branchName: branch}, nil
 }
