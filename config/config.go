@@ -125,6 +125,14 @@ func ToAppConfig(
 		}
 	}
 
+	if !filepath.IsAbs(c.Output) {
+		lrp := c.Output
+		c.Output, err = filepath.Abs(c.Output)
+		if err != nil {
+			return nil, errors.Wrapf(err, "creating absolute path to '%v'", lrp)
+		}
+	}
+
 	return &app.Config{
 		ImportReplaces:   c.Replace,
 		ForeignFileFQDNs: c.VendoredForeigns,

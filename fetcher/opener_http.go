@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/y0ssar1an/q"
 )
 
 // httpOpener fetches remote repos' files via HTTP(S).
@@ -45,6 +46,7 @@ func (h httpOpener) Exists(ctx context.Context, name string) error {
 
 func (h httpOpener) Open(ctx context.Context, name string) (File, error) {
 	path := h.prefix + name
+	q.Q("HTTP GET ", path)
 	req, err := http.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating GET request")
@@ -56,6 +58,9 @@ func (h httpOpener) Open(ctx context.Context, name string) (File, error) {
 	}
 	if rsp.StatusCode != http.StatusOK {
 		return nil, errors.Wrapf(err, "got code '%v' for '%v'", rsp.StatusCode, path)
+	}
+	if rsp.Body == nil {
+		return nil, errors.Errorf("HTTP response body is nil")
 	}
 	return rsp.Body, nil
 }

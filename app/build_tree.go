@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/tree"
+	"github.com/y0ssar1an/q"
 )
 
 func BuildTree(ctx context.Context, c Config) error {
@@ -16,6 +17,7 @@ func BuildTree(ctx context.Context, c Config) error {
 	if err != nil {
 		return err
 	}
+	q.Q("buildconfig", c)
 
 	tb := tree.NewBuilder(tree.Config{AbsPathToTree: c.AbsTreeDest}, f, rs)
 
@@ -51,6 +53,10 @@ func BuildTree(ctx context.Context, c Config) error {
 				if err != nil {
 					return errors.Wrapf(err, "getting absolute path for '%v'", pOrig)
 				}
+			}
+
+			if strings.HasPrefix(p, c.AbsTreeDest) {
+				return nil
 			}
 
 			if !strings.HasPrefix(p, c.ModuleAbsPath) {

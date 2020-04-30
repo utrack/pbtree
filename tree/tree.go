@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
 	"github.com/utrack/pbtree/resolver"
+	"github.com/y0ssar1an/q"
 )
 
 type Config struct {
@@ -62,6 +63,8 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 		if _, ok := b.fetched[imp]; ok {
 			continue
 		}
+
+		q.Q("addfile ", imp)
 
 		opener, err := b.f.FetchRepo(ctx, imp.repo)
 		if err != nil {
