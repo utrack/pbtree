@@ -28,6 +28,7 @@ func BuildTree(ctx context.Context, c Config) error {
 		}
 	}
 
+	var relPaths []string
 	for _, p := range c.Paths {
 		absPath, err := filepath.Abs(p)
 		if err != nil {
@@ -68,9 +69,15 @@ func BuildTree(ctx context.Context, c Config) error {
 				relPathFromRoot = "/" + relPathFromRoot
 			}
 
-			err = tb.AddFile(ctx, path.Join(c.ModuleName+"!", relPathFromRoot))
-			return errors.Wrapf(err, "processing local file '%v'", pOrig)
+			relPaths = append(relPaths, relPathFromRoot)
+			return nil
 		})
+	}
+	for _, rp := range relPaths {
+		err = tb.AddFile(ctx, path.Join(c.ModuleName+"!", rp))
+		if err != nil {
+			return errors.Wrapf(err, "processing local file '%v'", rp)
+		}
 	}
 	return nil
 }
