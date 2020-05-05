@@ -68,9 +68,9 @@ func Default(repoName string) Config {
 		Fetchers: Fetchers{
 			HTTP: FetcherHTTP{
 				ModuleToAddr: map[string]string{
-					"github.com/googleapis/googleapis": "https://github.com/googleapis/googleapis/blob/{branch}/",
-					"github.com/google/protobuf":       "https://github.com/google/protobuf/blob/{branch}/",
-					"github.com/gogo/*":                "https://github.com/gogo/*blob/{branch}/",
+					"github.com/googleapis/googleapis": "https://raw.githubusercontent.com/googleapis/googleapis/{branch}/",
+					"github.com/google/protobuf":       "https://raw.githubusercontent.com/google/protobuf/{branch}/",
+					"github.com/gogo/*":                "https://raw.githubusercontent.com/gogo/*/{branch}/",
 				},
 			},
 		},

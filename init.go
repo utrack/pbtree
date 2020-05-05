@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,10 @@ var Init = &cli.Command{
 		if err == nil && stat.Size() > 0 {
 			return errors.Errorf("file '%v' exists and not empty, not doing the thing", configPath)
 		}
-		return config.ToFile(config.Default(repoName), configPath)
+		err = config.ToFile(config.Default(repoName), configPath)
+		if err == nil {
+			log.Printf("new config is ready at '%v', edit away or see 'pbtree help add'", configPath)
+		}
+		return err
 	},
 }
