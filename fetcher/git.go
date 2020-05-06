@@ -38,12 +38,13 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	repo := "https://" + module
 
 	cmd := exec.Command("git", "fetch")
-	if _, err := os.Stat(filepath.Dir(dst)); os.IsNotExist(err) {
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		cmd = exec.Command("git", "clone", "--depth", "1", repo, dst)
+		log.Printf("git: cloning '%v'\n", repo)
 	} else {
+		log.Printf("git: fetching '%v'\n", repo)
 		cmd.Dir = dst
 	}
-	log.Printf("git: fetching '%v'\n", repo)
 	err := cmd.Run()
 	if err != nil {
 		return nil, errors.Wrap(err, "when running "+cmd.String())
