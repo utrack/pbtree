@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -37,17 +38,17 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	// TODO allow https/git selection
 	repo := "https://" + module
 
-	cmd := exec.Command("git", "fetch")
+	var cmd func() error
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
-		cmd = exec.Command("git", "clone", "--depth", "1", repo, dst)
+		cmd = execCmd("git", "", "clone", "--depth", "1", repo, dst)
 		log.Printf("git: cloning '%v'\n", repo)
 	} else {
+		cmd = execCmd("git", dst, "fetch")
 		log.Printf("git: fetching '%v'\n", repo)
-		cmd.Dir = dst
 	}
-	err := cmd.Run()
+	err := cmd()
 	if err != nil {
-		return nil, errors.Wrap(err, "when running "+cmd.String())
+		return nil, errors.Wrap(err, "pulling changes")
 	}
 
 	branch := "master"
@@ -57,11 +58,28 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 		c.repoToBranch.Put(module, "master")
 	}
 
-	cmd = exec.Command("git", "checkout", "origin/"+branch)
-	cmd.Dir = dst
-	err = cmd.Run()
+	err = execCmd("git", dst, "checkout", "origin/"+branch)()
 	if err != nil {
 		return nil, errors.Wrapf(err, "when checking out 'origin/%v' branch", branch)
 	}
 	return openerLocal{rootPath: dst, branchName: branch}, nil
+}
+
+func execCmd(bin string, dir string, args ...string) func() error {
+	cmd := exec.Command(bin, args...)
+	cmd.Dir = dir
+
+	p, err := cmd.StderrPipe()
+	if err != nil {
+		return func() error { return errors.Wrap(err, "when creating stderr pipe") }
+	}
+
+	return func() error {
+		err := cmd.Run()
+		if err != nil {
+			buf, _ := ioutil.ReadAll(p)
+			return errors.Wrap(err, "when running "+cmd.String()+"stdout: "+string(buf))
+		}
+		return nil
+	}
 }
