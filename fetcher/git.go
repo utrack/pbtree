@@ -69,16 +69,34 @@ func execCmd(bin string, dir string, args ...string) func() error {
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = dir
 
-	p, err := cmd.StderrPipe()
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return func() error { return errors.Wrap(err, "when creating stderr pipe") }
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return func() error { return errors.Wrap(err, "when creating stdout pipe") }
 	}
 
 	return func() error {
 		err := cmd.Run()
 		if err != nil {
-			buf, _ := ioutil.ReadAll(p)
-			return errors.Wrap(err, "when running "+cmd.String()+"stdout: "+string(buf))
+			buf, serr := ioutil.ReadAll(stdout)
+			if err != nil {
+				err = errors.Wrap(err, "can't extract stdout - "+serr.Error())
+			} else {
+				err = errors.Wrap(err, "stdout- '"+string(buf)+"'")
+			}
+
+			buf, serr = ioutil.ReadAll(stderr)
+			if err != nil {
+				err = errors.Wrap(err, "can't extract stderr - "+serr.Error())
+			} else {
+				err = errors.Wrap(err, "stderr- '"+string(buf)+"'")
+			}
+
+			return errors.Wrap(err, "when running '"+cmd.String()+"'")
 		}
 		return nil
 	}
