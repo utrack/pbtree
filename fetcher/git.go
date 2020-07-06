@@ -1,8 +1,8 @@
 package fetcher
 
 import (
+	"bytes"
 	"context"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -38,24 +38,24 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	// TODO allow https/git selection
 	repo := "https://" + module
 
-	var cmd func() error
-	if _, err := os.Stat(dst); os.IsNotExist(err) {
-		cmd = execCmd("git", "", "clone", "--depth", "1", repo, dst)
-		log.Printf("git: cloning '%v'\n", repo)
-	} else {
-		cmd = execCmd("git", dst, "fetch")
-		log.Printf("git: fetching '%v'\n", repo)
-	}
-	err := cmd()
-	if err != nil {
-		return nil, errors.Wrap(err, "pulling changes")
-	}
-
 	branch := "master"
 	if v, ok := c.repoToBranch.Get(module); ok {
 		branch = v
 	} else {
 		c.repoToBranch.Put(module, "master")
+	}
+
+	var cmd func() error
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		cmd = execCmd("git", "", "clone", "--branch", branch, "--depth", "1", repo, dst)
+		log.Printf("git: cloning '%v'\n", repo)
+	} else {
+		cmd = execCmd("git", dst, "pull", "origin", branch)
+		log.Printf("git: fetching '%v'\n", repo)
+	}
+	err := cmd()
+	if err != nil {
+		return nil, errors.Wrap(err, "pulling changes")
 	}
 
 	err = execCmd("git", dst, "checkout", "origin/"+branch)()
@@ -69,32 +69,17 @@ func execCmd(bin string, dir string, args ...string) func() error {
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = dir
 
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return func() error { return errors.Wrap(err, "when creating stderr pipe") }
-	}
+	stderr := bytes.NewBuffer(nil)
+	cmd.Stderr = stderr
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return func() error { return errors.Wrap(err, "when creating stdout pipe") }
-	}
+	stdout := bytes.NewBuffer(nil)
+	cmd.Stdout = stdout
 
 	return func() error {
 		err := cmd.Run()
 		if err != nil {
-			buf, serr := ioutil.ReadAll(stdout)
-			if err != nil {
-				err = errors.Wrap(err, "can't extract stdout - "+serr.Error())
-			} else {
-				err = errors.Wrap(err, "stdout- '"+string(buf)+"'")
-			}
-
-			buf, serr = ioutil.ReadAll(stderr)
-			if err != nil {
-				err = errors.Wrap(err, "can't extract stderr - "+serr.Error())
-			} else {
-				err = errors.Wrap(err, "stderr- '"+string(buf)+"'")
-			}
+			err = errors.Wrap(err, "stdout- '"+stdout.String()+"'")
+			err = errors.Wrap(err, "stderr- '"+stderr.String()+"'")
 
 			return errors.Wrap(err, "when running '"+cmd.String()+"' at '"+cmd.Dir+"'")
 		}
