@@ -96,7 +96,7 @@ func execCmd(bin string, dir string, args ...string) func() error {
 				err = errors.Wrap(err, "stderr- '"+string(buf)+"'")
 			}
 
-			return errors.Wrap(err, "when running '"+cmd.String()+"'")
+			return errors.Wrap(err, "when running '"+cmd.String()+"' at '"+cmd.Dir+"'")
 		}
 		return nil
 	}
