@@ -4,6 +4,7 @@ import (
 	"context"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
@@ -24,6 +25,9 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 	if isStandardFormat(fullImportStr) {
 		return fullImportStr, nil
 	}
+
+	fullImportStr = strings.TrimPrefix(fullImportStr, "/")
+
 	repo, err := r.f.FetchRepo(ctx, moduleName)
 	if err != nil {
 		return "", errors.Wrapf(err, "relative: error when fetching repo '%v'", moduleName)
@@ -33,14 +37,13 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 	if err == nil {
 		return stdFormat(moduleName, fullImportStr), nil
 	}
-	file, err := filepath.Rel(importingFile, fullImportStr)
-	if err != nil {
-		return fullImportStr, nil
-	}
 
-	err = repo.Exists(ctx, file)
+	dir := filepath.Dir(importingFile)
+	importAsRel := filepath.Join(dir, fullImportStr)
+
+	err = repo.Exists(ctx, importAsRel)
 	if err == nil {
-		return stdFormat(moduleName, path.Clean(file)), nil
+		return stdFormat(moduleName, path.Clean(importAsRel)), nil
 	}
 
 	return fullImportStr, nil
