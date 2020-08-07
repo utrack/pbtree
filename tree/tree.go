@@ -135,7 +135,7 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]
 		}
 		mi, err := b.r.ResolveImport(ctx, imp.repo, imp.relpath, m[1])
 		if err != nil {
-			return nil, errors.Wrapf(err, "resolving import, line %v: '%v'", i+1, m[1])
+			return nil, errors.Wrapf(err, "resolving import of '%v', line %v: '%v'", imp.repo+"!"+imp.relpath, i+1, m[1])
 		}
 
 		lines[i] = `import "` + mi + `";`
