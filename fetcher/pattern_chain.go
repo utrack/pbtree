@@ -19,25 +19,29 @@ type PatternChain struct {
 	pp []pattern
 }
 
-// PatternConfig describes a Fetcher that is used
+type PatternChainConfig struct {
+	Git  GitConfig
+	List []PatternItem
+}
+
+// PatternItem describes a Fetcher that is used
 // to get repos of some Pattern.
-type PatternConfig struct {
+type PatternItem struct {
 	Pattern string
 	Type    string
 	Path    string
 }
 
 type pattern struct {
-	PatternConfig
+	PatternItem
 	f func(repoName string) (Fetcher, error)
 }
 
-func NewPatternChain(cfg []PatternConfig, repo2branch *vmap.Map) (*PatternChain, error) {
+func NewPatternChain(cfg PatternChainConfig, repo2branch *vmap.Map) (*PatternChain, error) {
 	var pp []pattern
 
-	for i := range cfg {
-		c := cfg[i]
-		// TODO create pattern matcher
+	for i := range cfg.List {
+		c := cfg.List[i]
 		var f func(string) (Fetcher, error)
 		var err error
 
@@ -49,13 +53,21 @@ func NewPatternChain(cfg []PatternConfig, repo2branch *vmap.Map) (*PatternChain,
 				}
 				return NewLocal(c.Path, module)
 			}
+		case "git":
+			f = func(module string) (Fetcher, error) {
+				return NewGit(cfg.Git), nil
+			}
+		case "http":
+			f = func(module string) (Fetcher, error) {
+				return NewHTTP(c.Pattern, c.Path, repo2branch)
+			}
 		default:
 			err = errors.Errorf("unknown fetcher type '%v'", c.Type)
 		}
 		if err != nil {
 			return nil, errors.Wrapf(err, "when creating fetcher for '%v'", c.Pattern)
 		}
-		pp = append(pp, pattern{PatternConfig: c, f: f})
+		pp = append(pp, pattern{PatternItem: c, f: f})
 	}
 
 	return &PatternChain{

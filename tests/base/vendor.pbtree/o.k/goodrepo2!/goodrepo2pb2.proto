@@ -1,1 +1,3 @@
 syntax = "proto3";
+
+import "github.com/googleapis/googleapis!/google/api/http.proto";// original: google/api/http.proto

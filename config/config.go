@@ -71,18 +71,26 @@ func Default(repoName string) Config {
 		},
 		Fetchers: Fetchers{
 			Stack: []FetcherConf{
-				{Pattern: "*",
-					Type: "git",
+				{
+					Pattern: "github.com/googleapis/googleapis",
+					Type:    "http",
+					Path:    "https://raw.githubusercontent.com/googleapis/googleapis/{branch}/",
+				},
+				{
+					Pattern: "github.com/google/protobuf",
+					Path:    "https://raw.githubusercontent.com/google/protobuf/{branch}/",
+					Type:    "http",
+				},
+				{
+					Pattern: "github.com/gogo/*",
+					Path:    "https://raw.githubusercontent.com/gogo/*/{branch}/",
+					Type:    "http",
+				},
+				{
+					Pattern: "*",
+					Type:    "git",
 				},
 			},
-			// TODO readd when HTTP comes back
-			// HTTP: FetcherHTTP{
-			// 	ModuleToAddr: map[string]string{
-			// 		"github.com/googleapis/googleapis": "https://raw.githubusercontent.com/googleapis/googleapis/{branch}/",
-			// 		"github.com/google/protobuf":       "https://raw.githubusercontent.com/google/protobuf/{branch}/",
-			// 		"github.com/gogo/*":                "https://raw.githubusercontent.com/gogo/*/{branch}/",
-			// 	},
-			// },
 		},
 	}
 }
@@ -143,9 +151,9 @@ func ToAppConfig(
 		}
 	}
 
-	var fetcherList []fetcher.PatternConfig
+	var fetcherList []fetcher.PatternItem
 	for _, fc := range c.Fetchers.Stack {
-		fetcherList = append(fetcherList, fetcher.PatternConfig{
+		fetcherList = append(fetcherList, fetcher.PatternItem{
 			Pattern: fc.Pattern,
 			Type:    fc.Type,
 			Path:    fc.Path,

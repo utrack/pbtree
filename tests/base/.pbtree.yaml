@@ -3,10 +3,10 @@ globalRewrites:
     google/protobuf/*: github.com/google/protobuf!/src/google/protobuf/*
     google/rpc/*: github.com/googleapis/googleapis!/google/rpc/*
     google/type/*: github.com/googleapis/googleapis!/google/type/*
-    t.o/replace!/bad_path2.proto: o.k/goodrepo2!/pb1.proto
-    t.o/replace!/bad_path.proto: o.k/goodrepo2!/pb1.proto
     notexists.proto: o.k/goodrepo2!/pb1.proto
     o.k/goodrepo2!/notexists2.proto: o.k/goodrepo2!/pb1.proto
+    t.o/replace!/bad_path.proto: o.k/goodrepo2!/pb1.proto
+    t.o/replace!/bad_path2.proto: o.k/goodrepo2!/pb1.proto
 vendor: []
 paths:
   - pb
@@ -14,7 +14,17 @@ output: vendor.pbtree
 moduleName: se.lf/base
 fetchers:
     stack:
+      - pattern: github.com/googleapis/googleapis
+        type: http
+        path: https://raw.githubusercontent.com/googleapis/googleapis/{branch}/
+      - pattern: github.com/google/protobuf
+        type: http
+        path: https://raw.githubusercontent.com/google/protobuf/{branch}/
+      - pattern: github.com/gogo/*
+        type: http
+        path: https://raw.githubusercontent.com/gogo/*/{branch}/
       - pattern: '*'
         type: local
         path: ./deps/{module}
-branches: {}
+branches:
+    github.com/googleapis/googleapis: master

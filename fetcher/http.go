@@ -17,29 +17,26 @@ type HTTP struct {
 	branches     *vmap.Map
 }
 
-type HTTPConfig struct {
-	// repo names or patterns for which
-	// HTTP fetcher can be used; values are URI prefixes.
-	//
-	// Special substring {branch} is replaced to branch name.
-	PatternsToHTTPPrefix map[string]string
-
-	ReposToBranches *vmap.Map
-}
-
+// NewHTTP creates HTTP fetcher.
+//
+// Pattern is a module name or pattern for which this
+// fetcher can be used.
+//
+// Path is URI prefix for the repo.
+// Special substring {branch} is replaced to branch name.
 func NewHTTP(
-	c HTTPConfig,
+	pattern, path string,
+	branchMap *vmap.Map,
 ) (*HTTP, error) {
+
 	m := wildcard.NewMatcher()
-	for k, v := range c.PatternsToHTTPPrefix {
-		err := m.AddPattern(k, v)
-		if err != nil {
-			return nil, errors.Wrapf(err, "reading pattern '%v':'%v'", k, v)
-		}
+	err := m.AddPattern(pattern, path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading pattern '%v':'%v'", pattern, path)
 	}
 	return &HTTP{
 		reposMatcher: m,
-		branches:     c.ReposToBranches,
+		branches:     branchMap,
 	}, nil
 }
 

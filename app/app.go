@@ -12,7 +12,7 @@ type FetcherConfig struct {
 
 	RepoToBranch *vmap.Map
 
-	List []fetcher.PatternConfig
+	List []fetcher.PatternItem
 }
 
 type Config struct {
@@ -41,7 +41,13 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 		return nil, nil, errors.New("abspath to git cache is empty")
 	}
 
-	patternFetcher, err := fetcher.NewPatternChain(c.Fetchers.List, c.Fetchers.RepoToBranch)
+	patternFetcher, err := fetcher.NewPatternChain(
+		fetcher.PatternChainConfig{
+			Git: fetcher.GitConfig{
+				AbsPathToCache:  c.Fetchers.GitAbsPathToCache,
+				ReposToBranches: c.Fetchers.RepoToBranch},
+			List: c.Fetchers.List,
+		}, c.Fetchers.RepoToBranch)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "can't create module fetchers from config")
 	}
