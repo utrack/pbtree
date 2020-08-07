@@ -7,5 +7,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/y0ssar1an/q v1.0.10
+	go.uber.org/zap v1.15.0
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )

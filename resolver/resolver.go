@@ -8,13 +8,12 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/utrack/pbtree/fetcher"
 	"github.com/utrack/pbtree/internal/wildcard"
 )
 
 // Resolver resolves imports of non-standard form.
 // Accepts a repo where the import originates from, file containing an import
-// and full import string, returns import in standard form or original import.
+// and full import string, returns import in standard form or original import path.
 type Resolver interface {
 	ResolveImport(ctx context.Context, moduleName string, importingFile, fullImportStr string) (string, error)
 }
@@ -22,6 +21,7 @@ type Resolver interface {
 func isStandardFormat(str string) bool {
 	return strings.Contains(str, "!")
 }
+
 func stdFormat(repo, file string) string {
 	file = strings.TrimPrefix(file, "/")
 	return repo + "!/" + file
@@ -30,33 +30,6 @@ func stdFormat(repo, file string) string {
 func splitRepoPath(s string) (string, string) {
 	spl := strings.Split(s, "!")
 	return spl[0], spl[1]
-}
-
-type ExistenceChecker struct {
-	f fetcher.Fetcher
-}
-
-func NewExistenceChecker(f fetcher.Fetcher) ExistenceChecker {
-	return ExistenceChecker{f: f}
-}
-
-func (r ExistenceChecker) ResolveImport(ctx context.Context, _, _ string, fullImportStr string) (string, error) {
-	if !isStandardFormat(fullImportStr) {
-		return "", errors.New("import is not in standard form")
-	}
-	repoName, path := splitRepoPath(fullImportStr)
-	repo, err := r.f.FetchRepo(ctx, repoName)
-	if err != nil {
-		return "", errors.Wrapf(err, "existenceChecker: error when fetching repo '%v'", repoName)
-	}
-	err = repo.Exists(ctx, path)
-	if errors.Is(err, fetcher.ErrFileNotExists) {
-		return "", errors.Wrapf(err, "'%v' not exists in '%v'", path, repoName)
-	}
-	if err != nil {
-		return "", errors.Wrapf(err, "when checking existence of '%v'", path)
-	}
-	return fullImportStr, nil
 }
 
 // Replacer replaces import paths with other preset paths.

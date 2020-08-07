@@ -9,9 +9,8 @@ import (
 
 // Fetcher fetches repos by their name.
 //
-// FetchRepo returns a path to the repo root. It may be either an
-// absolute path to the directory, or remote path prefix that starts
-// with http:// or https://.
+// FetchRepo returns a FileOpener that reads module's files, either
+// locally or remotely.
 type Fetcher interface {
 	FetchRepo(ctx context.Context, name string) (fo FileOpener, err error)
 }

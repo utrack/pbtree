@@ -38,6 +38,7 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	// TODO allow https/git selection
 	repo := "https://" + module
 
+	// TODO checkout primary branch and remember it (re: master vs main)
 	branch := "master"
 	if v, ok := c.repoToBranch.Get(module); ok {
 		branch = v

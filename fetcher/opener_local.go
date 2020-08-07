@@ -43,7 +43,7 @@ func (f openerLocal) Open(_ context.Context, name string) (File, error) {
 	}
 	ret, err := os.Open(path)
 	if os.IsNotExist(err) && f.branchName != "" {
-		return nil, errors.Wrapf(err, "branch '%v'", f.branchName)
+		return nil, errors.Wrapf(ErrFileNotExists, "branch '%v'", f.branchName)
 	}
 	return ret, err
 }

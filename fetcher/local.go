@@ -2,16 +2,31 @@ package fetcher
 
 import (
 	"context"
+	"os"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
-// Local returns some hardcoded path for a single repo.
+// Local reads repos from local filesystem.
 type Local struct {
 	path     string
 	repoName string
 }
 
-func NewLocal(absPath string, repoName string) Local {
-	return Local{path: absPath, repoName: repoName}
+// NewLocal returns a Local fetcher.
+//
+// absPath can have a {module} placeholder which will be replaced.
+func NewLocal(absPath string, repoName string) (*Local, error) {
+	absPath = strings.Replace(absPath, "{module}", repoName, 1)
+	d, err := os.Stat(absPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't open directory '%v'", absPath)
+	}
+	if !d.IsDir() {
+		return nil, errors.Errorf("'%v' is not a directory", absPath)
+	}
+	return &Local{path: absPath, repoName: repoName}, nil
 }
 
 var _ Fetcher = &Local{}

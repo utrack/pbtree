@@ -9,17 +9,14 @@ import (
 
 type FetcherConfig struct {
 	GitAbsPathToCache string
-	// repo names or patterns for which
-	// HTTP fetcher can be used; values are URI prefixes.
-	//
-	// Special substring {branch} is replaced to branch name.
-	PatternsToHTTPPrefix map[string]string
 
 	RepoToBranch *vmap.Map
+
+	List []fetcher.PatternConfig
 }
 
 type Config struct {
-	ImportReplaces   map[string]string
+	ImportRewrites   map[string]string
 	ForeignFileFQDNs []string
 	Paths            []string
 	AbsTreeDest      string
@@ -44,31 +41,44 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 		return nil, nil, errors.New("abspath to git cache is empty")
 	}
 
-	fHTTP, err := fetcher.NewHTTP(fetcher.HTTPConfig{
-		ReposToBranches:      c.Fetchers.RepoToBranch,
-		PatternsToHTTPPrefix: c.Fetchers.PatternsToHTTPPrefix,
-	})
+	patternFetcher, err := fetcher.NewPatternChain(c.Fetchers.List, c.Fetchers.RepoToBranch)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "configuring HTTP fetcher")
+		return nil, nil, errors.Wrap(err, "can't create module fetchers from config")
+	}
+
+	localFetcher, err := fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName)
+	if err != nil {
+		panic(err)
 	}
 
 	f := fetcher.NewCache(fetcher.Chain(
-		fetcher.NewLocal(c.ModuleAbsPath, c.ModuleName),
-		fHTTP,
-		fetcher.NewGit(fetcher.GitConfig{AbsPathToCache: c.Fetchers.GitAbsPathToCache, ReposToBranches: c.Fetchers.RepoToBranch}),
+		localFetcher,
+		patternFetcher,
 	))
 
-	repl, err := resolver.NewReplacer(c.ImportReplaces)
+	repl, err := resolver.NewReplacer(c.ImportRewrites)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "when creating resolver.Replacer from config")
 	}
+
+	// resolvers used if there's no entry in pbmap
+	lowerChain := resolverStack{
+		rr: []resolver.Resolver{
+			resolver.FQDNSameProjectFormatter{},
+			resolver.NewRelative(f),
+		},
+	}
+
+	resolvPS := resolver.NewProjectScope(lowerChain, f)
+
+	// final stack
 	resolvers := []resolver.Resolver{
 		repl,
-		resolver.FQDNSameProjectFormatter{},
-		resolver.NewRelative(f),
+		resolvPS,
 		repl, // to replace resolved FQDNs
 		resolver.NewExistenceChecker(f),
 	}
+
 	rs := resolverStack{rr: resolvers}
 	return f, rs, nil
 }

@@ -15,7 +15,7 @@ func strFlag(ctx *cli.Context, f *cli.StringFlag) string {
 var configFlag = &cli.StringFlag{
 	Name:    "config",
 	Aliases: []string{"c"},
-	Value:   ".pbtree.yml",
+	Value:   "pbtree.yaml",
 	Usage:   "path to pbtree config (create it with 'pbtree init')",
 }
 

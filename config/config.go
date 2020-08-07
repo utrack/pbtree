@@ -7,14 +7,16 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/app"
+	"github.com/utrack/pbtree/fetcher"
 	"github.com/utrack/pbtree/vmap"
 	"gopkg.in/yaml.v3"
 )
 
-// Config is a model for .pbtree.yaml.
+// Config is a model for pbtree.yaml.
 type Config struct {
-	// Replace <import1> with <import2>
-	Replace map[string]string `yaml:"replace"`
+	// GlobalRewrites replaces <import1> with <import2> recursively,
+	// including every dependency.
+	GlobalRewrites map[string]string `yaml:"globalRewrites"`
 
 	VendoredForeigns []string `yaml:"vendor"`
 
@@ -35,11 +37,13 @@ type Config struct {
 }
 
 type Fetchers struct {
-	HTTP FetcherHTTP `yaml:"http"`
+	Stack []FetcherConf `yaml:"stack"`
 }
 
-type FetcherHTTP struct {
-	ModuleToAddr map[string]string `yaml:"repoToAddress"`
+type FetcherConf struct {
+	Pattern string `yaml:"pattern"`
+	Type    string `yaml:"type"`
+	Path    string `yaml:"path"`
 }
 
 func FromFile(path string) (*Config, error) {
@@ -59,20 +63,26 @@ func Default(repoName string) Config {
 	return Config{
 		RepoModuleName: repoName,
 		Output:         "vendor.pbtree",
-		Replace: map[string]string{
+		GlobalRewrites: map[string]string{
 			"google/api/*":      "github.com/googleapis/googleapis!/google/api/*",
 			"google/type/*":     "github.com/googleapis/googleapis!/google/type/*",
 			"google/rpc/*":      "github.com/googleapis/googleapis!/google/rpc/*",
 			"google/protobuf/*": "github.com/google/protobuf!/src/google/protobuf/*",
 		},
 		Fetchers: Fetchers{
-			HTTP: FetcherHTTP{
-				ModuleToAddr: map[string]string{
-					"github.com/googleapis/googleapis": "https://raw.githubusercontent.com/googleapis/googleapis/{branch}/",
-					"github.com/google/protobuf":       "https://raw.githubusercontent.com/google/protobuf/{branch}/",
-					"github.com/gogo/*":                "https://raw.githubusercontent.com/gogo/*/{branch}/",
+			Stack: []FetcherConf{
+				{Pattern: "*",
+					Type: "git",
 				},
 			},
+			// TODO readd when HTTP comes back
+			// HTTP: FetcherHTTP{
+			// 	ModuleToAddr: map[string]string{
+			// 		"github.com/googleapis/googleapis": "https://raw.githubusercontent.com/googleapis/googleapis/{branch}/",
+			// 		"github.com/google/protobuf":       "https://raw.githubusercontent.com/google/protobuf/{branch}/",
+			// 		"github.com/gogo/*":                "https://raw.githubusercontent.com/gogo/*/{branch}/",
+			// 	},
+			// },
 		},
 	}
 }
@@ -133,17 +143,26 @@ func ToAppConfig(
 		}
 	}
 
+	var fetcherList []fetcher.PatternConfig
+	for _, fc := range c.Fetchers.Stack {
+		fetcherList = append(fetcherList, fetcher.PatternConfig{
+			Pattern: fc.Pattern,
+			Type:    fc.Type,
+			Path:    fc.Path,
+		})
+	}
+
 	return &app.Config{
-		ImportReplaces:   c.Replace,
+		ImportRewrites:   c.GlobalRewrites,
 		ForeignFileFQDNs: c.VendoredForeigns,
 		Paths:            c.Paths,
 		AbsTreeDest:      c.Output,
 		ModuleName:       c.RepoModuleName,
 		ModuleAbsPath:    localRepoPath,
 		Fetchers: app.FetcherConfig{
-			GitAbsPathToCache:    pathToGitCache,
-			RepoToBranch:         vmap.New(c.RepoToBranch),
-			PatternsToHTTPPrefix: c.Fetchers.HTTP.ModuleToAddr,
+			GitAbsPathToCache: pathToGitCache,
+			RepoToBranch:      vmap.New(c.RepoToBranch),
+			List:              fetcherList,
 		},
 	}, nil
 
