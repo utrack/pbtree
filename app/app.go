@@ -65,7 +65,7 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 	lowerChain := resolverStack{
 		rr: []resolver.Resolver{
 			resolver.FQDNSameProjectFormatter{},
-			resolver.NewRelative(f),
+			resolver.NewRelative(f, true),
 		},
 	}
 
@@ -75,7 +75,9 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 	resolvers := []resolver.Resolver{
 		repl,
 		resolvPS,
-		repl, // to replace resolved FQDNs
+		repl,                           // to replace FQDNs resolved by PS, FQDNSameProj or relative
+		resolver.NewRelative(f, false), // last-resort relative resolution
+		repl,                           // to replace last-resort rel FQDNs
 		resolver.NewExistenceChecker(f),
 	}
 

@@ -1,4 +1,9 @@
 syntax = "proto3";
 
 import "o.k/goodrepo!/pb3.proto";// original: bad.recursive/pbmap!/pb1.proto
+// has bad globalRewrite in goodrepo2
 import "o.k/goodrepo2!/goodrepo2pb2.proto";// original: goodrepo2pb2.proto
+// does not exist, but has globalRewrite in base
+import "o.k/goodrepo2!/pb1.proto";// original: notexists.proto
+// does not exist, but has globalRewrite via FQDN in base
+import "o.k/goodrepo2!/pb1.proto";// original: notexists2.proto

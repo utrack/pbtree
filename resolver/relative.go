@@ -4,7 +4,6 @@ import (
 	"context"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
@@ -14,10 +13,14 @@ import (
 // /some/file/from/root.proto,
 // ../rel/to/file.proto.
 type Relative struct {
-	f fetcher.Fetcher
+	f              fetcher.Fetcher
+	checkExistence bool
 }
 
-func NewRelative(f fetcher.Fetcher) Relative {
+// NewRelative returns a Relative fetcher.
+//
+// checkExistence enables existence testing for mutated imports.
+func NewRelative(f fetcher.Fetcher, checkExistence bool) Relative {
 	return Relative{f: f}
 }
 
@@ -26,7 +29,16 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 		return fullImportStr, nil
 	}
 
-	fullImportStr = strings.TrimPrefix(fullImportStr, "/")
+	original := fullImportStr
+
+	if !filepath.IsAbs(fullImportStr) {
+		dir := filepath.Dir(importingFile)
+		fullImportStr = filepath.Join(dir, fullImportStr)
+	}
+
+	if !r.checkExistence {
+		return stdFormat(moduleName, path.Clean(fullImportStr)), nil
+	}
 
 	repo, err := r.f.FetchRepo(ctx, moduleName)
 	if err != nil {
@@ -34,17 +46,8 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 	}
 
 	err = repo.Exists(ctx, fullImportStr)
-	if err == nil {
-		return stdFormat(moduleName, fullImportStr), nil
+	if err != nil {
+		return original, nil
 	}
-
-	dir := filepath.Dir(importingFile)
-	importAsRel := filepath.Join(dir, fullImportStr)
-
-	err = repo.Exists(ctx, importAsRel)
-	if err == nil {
-		return stdFormat(moduleName, path.Clean(importAsRel)), nil
-	}
-
-	return fullImportStr, nil
+	return stdFormat(moduleName, path.Clean(fullImportStr)), nil
 }

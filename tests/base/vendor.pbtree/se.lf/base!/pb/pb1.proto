@@ -1,4 +1,4 @@
 syntax = "proto3";
 
 import "se.lf/base!/pb/pb2.proto";// original: pb2.proto
-import "se.lf/base!/local/pb3.proto";// original: local/pb3.proto
+import "se.lf/base!/local/pb3.proto";// original: /local/pb3.proto
