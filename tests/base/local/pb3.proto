@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+import "t.o/rewrite!/bad_path.proto";
+import "bad_news.proto";
+import "t.o/replace!/bad_path2.proto";

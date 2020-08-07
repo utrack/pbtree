@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+import "o.k/goodrepo!/pb3.proto";// original: bad.recursive/pbmap!/pb1.proto
+import "o.k/goodrepo2!/goodrepo2pb2.proto";// original: goodrepo2pb2.proto

@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+import "o.k/goodrepo!/pb1.proto";// original: t.o/rewrite!/bad_path.proto
+import "o.k/goodrepo!/pb2.proto";// original: bad_news.proto
+import "o.k/goodrepo2!/pb1.proto";// original: t.o/replace!/bad_path2.proto

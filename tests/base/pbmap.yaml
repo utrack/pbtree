@@ -1,0 +1,3 @@
+replace:
+  t.o/rewrite!/bad_path.proto: o.k/goodrepo!/pb1.proto
+  bad_news.proto: o.k/goodrepo!/pb2.proto

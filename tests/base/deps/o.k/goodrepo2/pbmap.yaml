@@ -1,0 +1,2 @@
+replace:
+  bad.recursive/pbmap!/pb1.proto: o.k/goodrepo!/pb3.proto

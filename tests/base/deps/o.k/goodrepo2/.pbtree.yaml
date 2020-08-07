@@ -1,0 +1,17 @@
+globalRewrites:
+    google/api/*: github.com/googleapis/googleapis!/google/api/*
+    google/protobuf/*: github.com/google/protobuf!/src/google/protobuf/*
+    google/rpc/*: github.com/googleapis/googleapis!/google/rpc/*
+    google/type/*: github.com/googleapis/googleapis!/google/type/*
+    goodrepo2pb2.proto: bad.bad/global!/rewrite.proto
+vendor: []
+paths:
+  - ./pb1.proto
+output: vendor.pbtree
+moduleName: o.k/goodrepo2
+fetchers:
+    stack:
+      - pattern: '*'
+        type: local
+        path: ../../{module}
+branches: {}

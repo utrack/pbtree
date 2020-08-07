@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+import "pb2.proto";
+import "local/pb3.proto";

@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+import "bad.recursive/pbmap!/pb1.proto";
+import "goodrepo2pb2.proto"; // this one should fail when building goodrepo2, but work when building base
