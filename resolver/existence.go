@@ -17,12 +17,12 @@ func NewExistenceChecker(f fetcher.Fetcher) ExistenceChecker {
 
 func (r ExistenceChecker) ResolveImport(ctx context.Context, _, _ string, fullImportStr string) (string, error) {
 	if !isStandardFormat(fullImportStr) {
-		return "", errors.New("import is not in standard form")
+		return "", errors.New("import was not resolved")
 	}
 	repoName, path := splitRepoPath(fullImportStr)
 	repo, err := r.f.FetchRepo(ctx, repoName)
 	if err != nil {
-		return "", errors.Wrapf(err, "existenceChecker: error when fetching repo '%v'", repoName)
+		return "", errors.Wrapf(err, "error when fetching repo '%v'", repoName)
 	}
 	err = repo.Exists(ctx, path)
 	if errors.Is(err, fetcher.ErrFileNotExists) {

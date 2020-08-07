@@ -72,11 +72,11 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 		}
 		file, err := opener.Open(ctx, imp.relpath)
 		if err != nil {
-			return errors.Wrapf(err, "opening file '%v'", imp.relpath)
+			return errors.Wrapf(err, "opening file '%s'", imp)
 		}
 		newImps, err := b.vendorFile(ctx, imp, file)
 		if err != nil {
-			return errors.Wrapf(err, "adding '%v' to worktree", imp.relpath)
+			return errors.Wrapf(err, "adding '%s' to worktree", imp)
 		}
 		for _, ii := range newImps {
 			qq = append(qq, newImp(ii))
@@ -89,6 +89,10 @@ func (b *Builder) AddFile(ctx context.Context, fqdn string) error {
 type imp struct {
 	repo    string
 	relpath string
+}
+
+func (i imp) String() string {
+	return i.repo + "!" + i.relpath
 }
 
 func newImp(fqdn string) imp {
@@ -116,7 +120,6 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]
 		return nil, errors.Wrapf(err, "can't create directory %v", path.Dir(dst))
 	}
 
-	// TODO pipe line by line
 	input, err := ioutil.ReadAll(ri)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't read .proto for vendoring")
@@ -135,7 +138,7 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]
 		}
 		mi, err := b.r.ResolveImport(ctx, imp.repo, imp.relpath, m[1])
 		if err != nil {
-			return nil, errors.Wrapf(err, "resolving import of '%v', line %v: '%v'", imp.repo+"!"+imp.relpath, i+1, m[1])
+			return nil, errors.Wrapf(err, "import resolution, line %v: '%v'", i+1, m[1])
 		}
 
 		lines[i] = `import "` + mi + `";`
