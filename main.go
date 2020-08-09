@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/urfave/cli/v2"
+	"github.com/utrack/pbtree/pblog"
 )
 
 func strFlag(ctx *cli.Context, f *cli.StringFlag) string {
@@ -50,6 +50,6 @@ For description of a worktree, see 'pbtree help build'.
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		pblog.Fatalw(err.Error())
 	}
 }

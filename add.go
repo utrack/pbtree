@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"github.com/utrack/pbtree/app"
 	"github.com/utrack/pbtree/config"
 )
 
@@ -14,20 +14,15 @@ var Add = &cli.Command{
 	Name:    "add",
 	Aliases: []string{"a"},
 
-	Usage:     "add a local or remote protofile to tree config",
-	ArgsUsage: "LOCAL-OR-REMOTE-PATH",
-	Description: `Add LOCAL-OR-REMOTE-PATH to this project's pbtree config,
+	Usage:     "add a path (protofile or directory) to tree config",
+	ArgsUsage: "PATH",
+	Description: `Add PATH to this project's pbtree config,
 which will be used by 'pbtree build' later.
 
-If the argument is a path to an existing local file or directory - add treats it
-as a local path and adds it to 'paths'.
+PATH can be a file or directory; if it's a directory then 'pbtree build'
+will scan each '*.proto' file under it and any subdirectories, recursively.
 
-Otherwise, argument is treated as an import string - it is resolved to standard
-format (re.po/addr!/path/to/file.proto) according to existing config and added
-to 'vendor' list.
-
-PATH's remote repo is resolved and cached if applicable, and remote repo' branch
-is written to the config; the same goes for PATH's dependencies, recursively.`,
+PATH should be located inside a current directory.`,
 	Category: "configuration",
 	Flags:    []cli.Flag{configFlag, gitCacheDir},
 	Action: func(ctx *cli.Context) error {
@@ -41,37 +36,29 @@ is written to the config; the same goes for PATH's dependencies, recursively.`,
 			return errors.Wrapf(err, "problems reading config file '%v' - try 'pbtree init'?", confPath)
 		}
 
-		path := ctx.Args().Get(0)
-		_, err = os.Stat(path)
-		if err == nil {
-			log.Printf("'%v' exists, assuming it's a local path\n", path)
-			c.Paths = append(c.Paths, path)
+		p := ctx.Args().Get(0)
 
-			return errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
+		if filepath.IsAbs(p) {
+			wd, err := os.Getwd()
+			if err != nil {
+				return errors.Wrap(err, "can't get current working directory")
+			}
+			p, err = filepath.Rel(wd, p)
+			if err != nil {
+				return errors.Wrapf(err, "can't build relative path from '%v' to '%v'", wd, p)
+			}
 		}
-		if !os.IsNotExist(err) {
-			return errors.Wrapf(err, "unexpected error when stat'ing '%v'", path)
+		p = filepath.Clean(p)
+		if strings.HasPrefix(p, "..") {
+			return errors.Errorf("'%v' is outside current working directory", p)
 		}
 
-		ac, err := config.ToAppConfig(*c, ".", ctx.String(gitCacheDir.Name))
+		_, err = os.Stat(p)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "nothing found in '%v'", p)
 		}
+		c.Paths = append(c.Paths, p)
 
-		imp, err := app.ResolveRemote(ctx.Context, *ac, path)
-		if err != nil {
-			return errors.Wrapf(err, "resolving '%v' as a remote import", path)
-		}
-		if imp != path {
-			log.Printf("resolved '%v' as '%v'\n", path, imp)
-		}
-		c.VendoredForeigns = append(c.VendoredForeigns, path)
-		c.RepoToBranch = ac.Fetchers.RepoToBranch.Values()
-
-		err = errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
-		if err == nil {
-			log.Println("file successfully added, don't forget to call 'pbtree build'!")
-		}
-		return err
+		return errors.Wrapf(config.ToFile(*c, confPath), "writing new config to '%v'", confPath)
 	},
 }

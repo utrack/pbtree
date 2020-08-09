@@ -17,3 +17,7 @@ func init() {
 func Warnw(msg string, args ...interface{}) {
 	Logger.Warnw(msg, args...)
 }
+
+func Fatalw(msg string, args ...interface{}) {
+	Logger.Fatalw(msg, args...)
+}
