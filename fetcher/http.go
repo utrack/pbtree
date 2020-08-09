@@ -2,11 +2,11 @@ package fetcher
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/internal/wildcard"
+	"github.com/utrack/pbtree/pblog"
 	"github.com/utrack/pbtree/vmap"
 )
 
@@ -52,7 +52,7 @@ func (c *HTTP) FetchRepo(ctx context.Context, module string) (FileOpener, error)
 		c.branches.Put(module, branch)
 	}
 	prefix = strings.Replace(prefix, "{branch}", branch, -1)
-	log.Printf("fetcher: using http fetcher for '%v'\n", module)
+	pblog.Infof("fetcher: using http fetcher for '%v'", module)
 
 	ret := newHTTPOpener(prefix)
 	return ret, nil
