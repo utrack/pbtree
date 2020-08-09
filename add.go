@@ -14,10 +14,9 @@ var Add = &cli.Command{
 	Name:    "add",
 	Aliases: []string{"a"},
 
-	Usage:     "add a path (protofile or directory) to tree config",
+	Usage:     "add protofiles to a tree",
 	ArgsUsage: "PATH",
-	Description: `Add PATH to this project's pbtree config,
-which will be used by 'pbtree build' later.
+	Description: `Add PATH to this project's config.
 
 PATH can be a file or directory; if it's a directory then 'pbtree build'
 will scan each '*.proto' file under it and any subdirectories, recursively.

@@ -21,3 +21,7 @@ func Warnw(msg string, args ...interface{}) {
 func Fatalw(msg string, args ...interface{}) {
 	Logger.Fatalw(msg, args...)
 }
+
+func Infof(msg string, args ...interface{}) {
+	Logger.Infof(msg, args...)
+}

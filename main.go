@@ -43,8 +43,6 @@ func main() {
 		Description: `Builds a standard, predictable protofile tree
 including local and remote protofiles.
 
-For config management, see 'pbtree help add'.
-
 For description of a worktree, see 'pbtree help build'.
 `,
 	}
