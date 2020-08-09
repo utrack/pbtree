@@ -61,26 +61,28 @@ func TestResolver__relativeImports(t *testing.T) {
 	f3 := "foo/file3.proto"
 	df := newEmptiesFetcher(repoName, f1, f2, f3)
 
-	resolv := NewRelative(df)
-
 	ctx := context.Background()
 
 	type tc struct {
-		from string
-		to   string
-		exp  string
+		from    string
+		to      string
+		exp     string
+		checkEx bool
 	}
 	cc := []tc{
-		{f1, f2, repoName + "!/" + f2},
-		{f1, "/" + f2, repoName + "!/" + f2},
-		{f1, "file2.proto", repoName + "!/" + f2},
-		{f1, "../dir/file2.proto", repoName + "!/" + f2},
-		{f1, f3, repoName + "!/" + f3},
-		{f1, "/" + f3, repoName + "!/" + f3},
-		{f1, "../" + f3, repoName + "!/" + f3},
+		{f1, f2, repoName + "!/" + f2, true},
+		{f1, "/" + f2, repoName + "!/" + f2, true},
+		{f1, "file2.proto", repoName + "!/" + f2, true},
+		{f1, "../dir/file2.proto", repoName + "!/" + f2, true},
+		{f1, f3, repoName + "!/" + f3, true},
+		{f1, "/" + f3, repoName + "!/" + f3, true},
+		{f1, "../" + f3, repoName + "!/" + f3, true},
+		{f1, "../" + f3, repoName + "!/" + f3, false},
+		{f1, "/" + f3, repoName + "!/" + f3, false},
 	}
 
 	for i, c := range cc {
+		resolv := NewRelative(df, c.checkEx)
 		got, err := resolv.ResolveImport(ctx, repoName, c.from, c.to)
 		so.Nil(err)
 		so.Equal(c.exp, got, "case %v", i+1)
