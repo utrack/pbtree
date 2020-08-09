@@ -10,23 +10,20 @@ import (
 	"github.com/y0ssar1an/q"
 )
 
-// ProjectScope resolves an import using via project's pbmap
-// before falling through to the Resolver chain.
+// ProjectScope resolves an import using pbmap of a project that contains
+// the import.
 type ProjectScope struct {
 	mapPerScope map[string]*wildcard.Matcher
 
-	chain Resolver
-	fet   fetcher.Fetcher
+	fet fetcher.Fetcher
 }
 
-// NewProjectScope creates new ProjectScope that uses chain
-// as next Resolver and fetches pbmap via Fetcher.
-func NewProjectScope(chain Resolver, fet fetcher.Fetcher) *ProjectScope {
+// NewProjectScope creates new ProjectScope that fetches pbmap file via Fetcher.
+func NewProjectScope(fet fetcher.Fetcher) *ProjectScope {
 	return &ProjectScope{
 		mapPerScope: map[string]*wildcard.Matcher{},
 
-		chain: chain,
-		fet:   fet,
+		fet: fet,
 	}
 }
 
@@ -35,12 +32,12 @@ func (r *ProjectScope) ResolveImport(ctx context.Context, moduleName string, imp
 	if err != nil {
 		return "", errors.Wrapf(err, "when scoping module '%v'", moduleName)
 	}
-	q.Q("scoping project", moduleName, m)
 
 	if v, ok := m.MatchReplace(fullImportStr); ok {
 		return v, nil
 	}
-	return r.chain.ResolveImport(ctx, moduleName, importingFile, fullImportStr)
+	return fullImportStr, nil
+	//return r.chain.ResolveImport(ctx, moduleName, importingFile, fullImportStr)
 }
 
 func (r *ProjectScope) getMap(ctx context.Context, moduleName string) (*wildcard.Matcher, error) {
@@ -61,7 +58,7 @@ func (r *ProjectScope) getMap(ctx context.Context, moduleName string) (*wildcard
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't read pbmap.asv")
+		return nil, errors.Wrap(err, "couldn't read pbmap.yaml")
 	}
 
 	m, err := pbmap.Read(file)
@@ -78,5 +75,6 @@ func (r *ProjectScope) getMap(ctx context.Context, moduleName string) (*wildcard
 			return nil, errors.Wrapf(err, "parsing '%v'->'%v' as a pattern", f, m[f])
 		}
 	}
+	q.Q("scoping project", moduleName, m)
 	return wcm, nil
 }

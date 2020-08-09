@@ -38,7 +38,7 @@ func main() {
 	app := &cli.App{
 		Name:     "pbtree",
 		Usage:    "build protofile tree",
-		Commands: []*cli.Command{Init, Build, Add},
+		Commands: []*cli.Command{Init, Build, Add, Get},
 		// TODO add help topic for protofile imports, 'topic imports'
 		Description: `Builds a standard, predictable protofile tree
 including local and remote protofiles.

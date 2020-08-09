@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/fetcher"
+	"github.com/y0ssar1an/q"
 )
 
 // Relative resolves relative imports of form
@@ -38,6 +39,7 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 			dir := filepath.Dir(importingFile)
 			fullImportStr = filepath.Join(dir, fullImportStr)
 		}
+		q.Q(original, fullImportStr)
 		return stdFormat(moduleName, path.Clean(fullImportStr)), nil
 	}
 
@@ -49,7 +51,6 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 	}
 
 	if repo.Exists(ctx, fullImportStr) == nil {
-		println(fullImportStr + " not found")
 		// file found, path is either absolute or relative from root
 		return stdFormat(moduleName, path.Clean(fullImportStr)), nil
 	}
@@ -59,7 +60,7 @@ func (r Relative) ResolveImport(ctx context.Context, moduleName string, importin
 	fullImportStr = filepath.Join(dir, fullImportStr)
 
 	err = repo.Exists(ctx, fullImportStr)
-	if errors.Is(fetcher.ErrFileNotExists, err) {
+	if errors.Is(err, fetcher.ErrFileNotExists) {
 		return original, nil
 	}
 

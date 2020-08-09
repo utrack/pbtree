@@ -15,13 +15,13 @@ func (s resolverStack) ResolveImport(ctx context.Context, moduleName, fileImpFro
 	perms := []string{fullImportStr}
 
 	var err error
-	for _, r := range s.rr {
+	for i, r := range s.rr {
 		fullImportStr, err = r.ResolveImport(ctx, moduleName, fileImpFrom, fullImportStr)
+		perms = append(perms, fullImportStr)
 		if err != nil {
-			q.Q("permutations for failed resolution", err, perms)
+			q.Q("permutations for failed resolution", err, perms, i)
 			return "", err
 		}
-		perms = append(perms, fullImportStr)
 	}
 	return fullImportStr, nil
 }

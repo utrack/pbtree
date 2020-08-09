@@ -67,20 +67,14 @@ func buildStack(c Config) (fetcher.Fetcher, resolver.Resolver, error) {
 		return nil, nil, errors.Wrap(err, "when creating resolver.Replacer from config")
 	}
 
-	// resolvers used if there's no entry in pbmap
-	lowerChain := resolverStack{
-		rr: []resolver.Resolver{
-			resolver.FQDNSameProjectFormatter{},
-			resolver.NewRelative(f, true),
-		},
-	}
-
-	resolvPS := resolver.NewProjectScope(lowerChain, f)
+	resolvPS := resolver.NewProjectScope(f)
 
 	// final stack
 	resolvers := []resolver.Resolver{
 		repl,
 		resolvPS,
+		resolver.FQDNSameProjectFormatter{},
+		resolver.NewRelative(f, true),
 		repl,                           // to replace FQDNs resolved by PS, FQDNSameProj or relative
 		resolver.NewRelative(f, false), // last-resort relative resolution
 		repl,                           // to replace last-resort rel FQDNs

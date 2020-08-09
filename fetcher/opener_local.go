@@ -30,8 +30,8 @@ func (f openerLocal) Exists(_ context.Context, name string) error {
 		return err
 	}
 	_, err = os.Stat(path)
-	if os.IsNotExist(err) && f.branchName != "" {
-		return errors.Wrapf(err, "branch '%v'", f.branchName)
+	if os.IsNotExist(err) {
+		return errors.Wrapf(ErrFileNotExists, "(%v)", err)
 	}
 	return err
 }
@@ -42,8 +42,8 @@ func (f openerLocal) Open(_ context.Context, name string) (File, error) {
 		return nil, err
 	}
 	ret, err := os.Open(path)
-	if os.IsNotExist(err) && f.branchName != "" {
-		return nil, errors.Wrapf(ErrFileNotExists, "branch '%v'", f.branchName)
+	if os.IsNotExist(err) {
+		return nil, errors.Wrapf(ErrFileNotExists, "(%v)", err)
 	}
 	return ret, err
 }

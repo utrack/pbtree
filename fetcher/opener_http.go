@@ -56,6 +56,9 @@ func (h httpOpener) Open(ctx context.Context, name string) (File, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "when running GET request to '%v'", path)
 	}
+	if rsp.StatusCode == http.StatusNotFound {
+		return nil, errors.Wrap(ErrFileNotExists, "HTTP 404")
+	}
 	if rsp.StatusCode != http.StatusOK {
 		return nil, errors.Wrapf(err, "got code '%v' for '%v'", rsp.StatusCode, path)
 	}
