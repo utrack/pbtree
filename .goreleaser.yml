@@ -5,6 +5,11 @@ builds:
 - env:
   - CGO_ENABLED=0
   main: .
+  ignore:
+  - goos: darwin
+    goarch: '386'
+  - goos: freebsd
+    goarch: arm64
 archives:
 - replacements:
     darwin: Darwin
