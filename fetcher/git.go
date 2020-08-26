@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/utrack/pbtree/vmap"
@@ -45,6 +46,7 @@ func (c *Git) FetchRepo(ctx context.Context, module string) (FileOpener, error) 
 	} else {
 		c.repoToBranch.Put(module, "master")
 	}
+	dst = dst + "/" + strings.Replace(branch, "/", "_", -1)
 
 	var cmd func() error
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
