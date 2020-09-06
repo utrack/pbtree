@@ -13,9 +13,9 @@ var Build = &cli.Command{
 	Description: `Builds protofile worktree according to current
 project's config.
 
-For more info on standard import format, see 'pbtree help topic imports'.
+To add local .proto files to the build, see 'pbtree help add'.
 
-For more info on config management, see 'pbtree help add'.
+To add remote .proto files to the build, see 'pbtree help get'.
 
 For local files and directories listed in 'paths', build rewrites
 their own imports to standard format and puts them to the worktree under their
@@ -31,9 +31,9 @@ same way as local files.
 
 Build can rewrite given config file if any new repository was discovered.
 `,
-	Flags: []cli.Flag{configFlag, gitCacheDir},
+	Flags: []cli.Flag{gitCacheDir},
 	Action: func(ctx *cli.Context) error {
-		confPath := strFlag(ctx, configFlag)
+		confPath := confFileName
 		c, err := config.FromFile(confPath)
 		if err != nil {
 			return errors.Wrapf(err, "problems reading config file '%v' - try 'pbtree init'?", confPath)

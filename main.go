@@ -8,15 +8,10 @@ import (
 	"github.com/utrack/pbtree/pblog"
 )
 
+const confFileName = ".pbtree.yaml"
+
 func strFlag(ctx *cli.Context, f *cli.StringFlag) string {
 	return ctx.String(f.Name)
-}
-
-var configFlag = &cli.StringFlag{
-	Name:    "config",
-	Aliases: []string{"c"},
-	Value:   ".pbtree.yaml",
-	Usage:   "path to pbtree config (create it with 'pbtree init')",
 }
 
 var gitCacheDir = &cli.StringFlag{

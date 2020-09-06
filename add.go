@@ -23,12 +23,12 @@ will scan each '*.proto' file under it and any subdirectories, recursively.
 
 PATH should be located inside a current directory.`,
 	Category: "configuration",
-	Flags:    []cli.Flag{configFlag, gitCacheDir},
+	Flags:    []cli.Flag{gitCacheDir},
 	Action: func(ctx *cli.Context) error {
-		if ctx.NArg() == 0 || ctx.NArg() > 1 || ctx.Args().Get(0) == "" {
+		if ctx.NArg() != 1 || ctx.Args().Get(0) == "" {
 			return errors.New("PATH argument is required; see pbtree help add")
 		}
-		confPath := strFlag(ctx, configFlag)
+		confPath := confFileName
 
 		c, err := config.FromFile(confPath)
 		if err != nil {

@@ -23,19 +23,19 @@ REMOTE-PROTO will be pulled along with its dependencies.
 REMOTE-PROTO will be added to the config file, and pbtree will
 refresh it each time 'pbtree build' is executed.`,
 	Category: "configuration",
-	Flags:    []cli.Flag{configFlag, gitCacheDir},
+	Flags:    []cli.Flag{gitCacheDir},
 	Action: func(ctx *cli.Context) error {
-		if ctx.NArg() == 0 || ctx.NArg() > 1 || ctx.Args().Get(0) == "" {
+		remoteProto := ctx.Args().Get(0)
+		if remoteProto == "" {
 			return errors.New("REMOTE-PROTO argument is required; see pbtree help add")
 		}
-		confPath := strFlag(ctx, configFlag)
+
+		confPath := confFileName
 
 		c, err := config.FromFile(confPath)
 		if err != nil {
 			return errors.Wrapf(err, "problems reading config file '%v' - try 'pbtree init'?", confPath)
 		}
-
-		remoteProto := ctx.Args().Get(0)
 
 		ac, err := config.ToAppConfig(*c, ".", ctx.String(gitCacheDir.Name))
 		if err != nil {

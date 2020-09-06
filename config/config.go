@@ -14,8 +14,8 @@ import (
 
 // Config is a model for pbtree.yaml.
 type Config struct {
-	// GlobalRewrites replaces <import1> with <import2> recursively,
-	// including every dependency.
+	// GlobalRewrites replaces <import1> with <import2>,
+	// including imports in remote protofiles.
 	GlobalRewrites map[string]string `yaml:"globalRewrites"`
 
 	VendoredForeigns []string `yaml:"vendor"`
