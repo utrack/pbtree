@@ -1,5 +1,7 @@
-/*Package tree builds a worktree of protofiles, every file has
-/*standard import format.*/
+/*
+Package tree builds a worktree of protofiles, every file has
+/*standard import format.
+*/
 package tree
 
 import (
@@ -113,7 +115,8 @@ var importRegexp = regexp.MustCompile(`^import\s+"(.*?)";.*$`)
 func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]string, error) {
 	defer ri.Close()
 	var ret []string
-	dst := filepath.Join(b.c.AbsPathToTree, imp.repo+"!", imp.relpath)
+	//dst := filepath.Join(b.c.AbsPathToTree, imp.repo+"!", imp.relpath)
+	dst := filepath.Join(b.c.AbsPathToTree, imp.relpath)
 
 	err := os.MkdirAll(path.Dir(dst), os.ModePerm)
 	if err != nil {
@@ -141,7 +144,8 @@ func (b *Builder) vendorFile(ctx context.Context, imp imp, ri io.ReadCloser) ([]
 			return nil, errors.Wrapf(err, "import resolution, line %v: '%v'", i+1, m[1])
 		}
 
-		lines[i] = `import "` + mi + `";`
+		//lines[i] = `import "` + mi + `";`
+		lines[i] = `import "` + m[1] + `";`
 		if mi != m[1] {
 			lines[i] += `// original: ` + m[1]
 		}
